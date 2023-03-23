@@ -1,13 +1,17 @@
 package com.jetlagjelly.backend.controllers;
 
+import static com.mongodb.client.model.Filters.eq;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import org.bson.Document;
+import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.Sorts;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class DatabaseManager {
@@ -16,10 +20,8 @@ public class DatabaseManager {
         MongoClient client = MongoClients.create("mongodb+srv://bmclean2:bmclean03@clusterjlj.jottkkm.mongodb.net/?retryWrites=true&w=majority");
         MongoDatabase db = client.getDatabase("JetLagJelly");
         MongoCollection collection = db.getCollection("users");
-        String[] cid = new String[]{"calendar_id"};
-        String[] dy = new String[]{"days"};
-        int[] st = new int[]{6,3};
-        int[] en = new int[]{8,4};
+
+
         List<String> sca = new ArrayList<>();
         sca.add("sc");
         List<String> cida = new ArrayList<>();
@@ -31,16 +33,59 @@ public class DatabaseManager {
         List<Integer> ena = new ArrayList<>();
         ena.add(4);
 
+        User user = new User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", 8, cida, sta, ena, dya);
+
 
         Document document;
-        document = newUser("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", 8, cida, sta, ena, dya);
+        //document = User.newUser(user);
+
+
+        document = fetchUser(collection, "bmclean2@oswego.edu");
+        System.out.println(document.get("access_token"));
+
+    }
+
+    static final class User {
+        String email;
+        String access_token;
+        String refresh_token;
+        int expires_at;
+        List<String> scope;
+        String token_type;
+        int timezone;
+        List<String> calendar_id;
+        List<Integer> start;
+        List<Integer> end;
+        List<String> days;
+        User(String em, String a, String r, int ex, List<String> sc, String tt, int t, List<String> cid, List<Integer> s, List<Integer> e, List<String> d) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d;}
+
+        public static Document newUser(User user) {
+            Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
+            Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token).append("refresh_token", user.refresh_token).append("expires_at", user.expires_at).append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone).append("calendar_id", user.calendar_id).append("timerange", tr);
+            return sampleDoc;
+        }
+
+        public static void getTimeConstraints(User user) {
+
+
+
+        }
+
+        public static int getTimezone(User user) {
+            return user.timezone;
+        }
 
 
     }
 
-    public static Document newUser(String email, String access_token, String refresh_token, int expires_at, List<String> scope, String token_type, int timezone, List<String> calendar_id, List<Integer> start, List<Integer> end, List<String> days) {
-        Document tr = new Document().append("start", start).append("end", end).append("days", days);
-        Document sampleDoc = new Document("email", email).append("access_token", access_token).append("refresh_token", refresh_token).append("expires_at", expires_at).append("scope", scope).append("token_type", token_type).append("timezone", timezone).append("calendar_id", calendar_id).append("timerange", tr);
-        return sampleDoc;
+    public static Document fetchUser(MongoCollection collection, String email) {
+
+        Bson projectionFields = Projections.fields(
+                Projections.include("email", "access_token", "refresh_token", "expires_at", "scope", "token_type", "timezone", "calendar_id", "timerange", "start", "end", "days"),
+                Projections.excludeId());
+        Document doc = (Document) collection.find(eq("email", email)).projection(projectionFields).first();
+        return doc;
     }
+
+
 }
