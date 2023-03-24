@@ -17,7 +17,7 @@ import java.util.List;
 public class DatabaseManager {
     public static void main(String[] args) {
 
-        MongoClient client = MongoClients.create("mongodb+srv://bmclean2:bmclean03@clusterjlj.jottkkm.mongodb.net/?retryWrites=true&w=majority");
+        MongoClient client = MongoClients.create("mongodb://localhost:27017/");
         MongoDatabase db = client.getDatabase("JetLagJelly");
         MongoCollection collection = db.getCollection("users");
 
