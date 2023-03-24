@@ -37,11 +37,17 @@ public class DatabaseManager {
 
 
         Document document;
-        //document = User.newUser(user);
+        document = newUser(user);
+        collection.insertOne(document);
 
 
-        document = fetchUser(collection, "bmclean2@oswego.edu");
-        System.out.println(document.get("access_token"));
+        //document = fetchUser(collection, "bmclean2@oswego.edu");
+        //System.out.println(document.get("access_token"));
+
+        //document = meetingMgr(collection, user);
+        //System.out.println(document);
+
+        //deleteUser(collection, user);
 
     }
 
@@ -58,21 +64,21 @@ public class DatabaseManager {
         List<Integer> end;
         List<String> days;
         User(String em, String a, String r, int ex, List<String> sc, String tt, int t, List<String> cid, List<Integer> s, List<Integer> e, List<String> d) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d;}
+    }
 
-        public static Document newUser(User user) {
-            Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
-            Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token).append("refresh_token", user.refresh_token).append("expires_at", user.expires_at).append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone).append("calendar_id", user.calendar_id).append("timerange", tr);
-            return sampleDoc;
-        }
+    public static Document newUser(User user) {
+        Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
+        Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token).append("refresh_token", user.refresh_token).append("expires_at", user.expires_at).append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone).append("calendar_id", user.calendar_id).append("timerange", tr);
+        return sampleDoc;
+    }
 
-        public static void getTimeConstraints(User user) {
-            
-        }
+    public static Document meetingMgr(MongoCollection collection, User user) {
 
-        public static int getTimezone(User user) {
-            return user.timezone;
-        }
-
+        Bson projectionFields = Projections.fields(
+                Projections.include( "email", "timezone", "calendar_id", "timerange", "start", "end", "days"),
+                Projections.excludeId());
+        Document doc = (Document) collection.find(eq("email", user.email)).projection(projectionFields).first();
+        return doc;
 
     }
 
@@ -85,5 +91,10 @@ public class DatabaseManager {
         return doc;
     }
 
+    public static void deleteUser(MongoCollection collection, User user) {
 
+        Bson query = eq("email", user.email);
+        collection.deleteOne(query);
+
+    }
 }
