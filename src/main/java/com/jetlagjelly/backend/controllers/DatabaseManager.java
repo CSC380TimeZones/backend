@@ -97,4 +97,15 @@ public class DatabaseManager {
         collection.deleteOne(query);
 
     }
+
+    public static Document tokens(User user){
+        Document accessToken = new Document()
+                .append("token", user.access_token)
+                .append("type", user.token_type)
+                .append("expires_at", user.expires_at)
+                .append("scope", user.scope)
+                .append("refreshToken", user.refresh_token);
+
+        return accessToken;
+    }
 }
