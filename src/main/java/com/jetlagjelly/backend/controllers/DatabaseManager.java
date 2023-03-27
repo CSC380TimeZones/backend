@@ -37,8 +37,8 @@ public class DatabaseManager {
 
 
         Document document;
-        document = newUser(user);
-        collection.insertOne(document);
+        //document = newUser(user);
+        //collection.insertOne(document);
 
 
         //document = fetchUser(collection, "bmclean2@oswego.edu");
@@ -48,6 +48,11 @@ public class DatabaseManager {
         //System.out.println(document);
 
         //deleteUser(collection, user);
+
+        setTimezone(user, 13);
+        document = newUser(user);
+        deleteUser(collection, user);
+        collection.insertOne(document);
 
     }
 
@@ -107,5 +112,9 @@ public class DatabaseManager {
                 .append("refreshToken", user.refresh_token);
 
         return accessToken;
+    }
+
+    public static void setTimezone(DatabaseManager.User user, int tz) {
+        user.timezone = tz;
     }
 }
