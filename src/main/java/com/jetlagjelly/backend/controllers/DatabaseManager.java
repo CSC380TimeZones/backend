@@ -29,22 +29,22 @@ public class DatabaseManager {
         List<String> dya = new ArrayList<>();
         dya.add("days");
         List<String> sd = new ArrayList<>();
-        dya.add("sub-optimal days");
+        sd.add("sub-optimal days");
         List<Integer> sta = new ArrayList<>();
         sta.add(3);
         List<Integer> ena = new ArrayList<>();
         ena.add(4);
         List<Integer> ss = new ArrayList<>();
-        sta.add(2);
+        ss.add(2);
         List<Integer> se = new ArrayList<>();
-        ena.add(8);
+        se.add(8);
 
         User user = new User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", 8, cida, sta, ena, dya, ss, se, sd);
 
 
         Document document;
-        //document = newUser(user);
-        //collection.insertOne(document);
+        document = newUser(user);
+        collection.insertOne(document);
 
 
         //document = fetchUser(collection, "bmclean2@oswego.edu");
