@@ -28,12 +28,18 @@ public class DatabaseManager {
         cida.add("calendar_id");
         List<String> dya = new ArrayList<>();
         dya.add("days");
+        List<String> sd = new ArrayList<>();
+        dya.add("sub-optimal days");
         List<Integer> sta = new ArrayList<>();
         sta.add(3);
         List<Integer> ena = new ArrayList<>();
         ena.add(4);
+        List<Integer> ss = new ArrayList<>();
+        sta.add(2);
+        List<Integer> se = new ArrayList<>();
+        ena.add(8);
 
-        User user = new User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", 8, cida, sta, ena, dya);
+        User user = new User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", 8, cida, sta, ena, dya, ss, se, sd);
 
 
         Document document;
@@ -49,10 +55,10 @@ public class DatabaseManager {
 
         //deleteUser(collection, user);
 
-        setTimezone(user, 13);
-        document = newUser(user);
-        deleteUser(collection, user);
-        collection.insertOne(document);
+        //setTimezone(user, 13);
+        //document = newUser(user);
+        //deleteUser(collection, user);
+        //collection.insertOne(document);
 
     }
 
@@ -68,19 +74,23 @@ public class DatabaseManager {
         List<Integer> start;
         List<Integer> end;
         List<String> days;
-        User(String em, String a, String r, int ex, List<String> sc, String tt, int t, List<String> cid, List<Integer> s, List<Integer> e, List<String> d) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d;}
+        List<Integer> substart;
+        List<Integer> subend;
+        List<String> subdays;
+        User(String em, String a, String r, int ex, List<String> sc, String tt, int t, List<String> cid, List<Integer> s, List<Integer> e, List<String> d, List<Integer> ss, List<Integer> se, List<String> sd) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d; substart = ss; subend = se; subdays = sd;}
     }
 
     public static Document newUser(User user) {
         Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
-        Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token).append("refresh_token", user.refresh_token).append("expires_at", user.expires_at).append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone).append("calendar_id", user.calendar_id).append("timerange", tr);
+        Document st = new Document().append("suboptimal_start", user.substart).append("suboptimal_end", user.subend).append("suboptimal_days", user.subdays);
+        Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token).append("refresh_token", user.refresh_token).append("expires_at", user.expires_at).append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone).append("calendar_id", user.calendar_id).append("preferred_timerange", tr).append("suboptimal_timerange", st);
         return sampleDoc;
     }
 
     public static Document meetingMgr(MongoCollection collection, User user) {
 
         Bson projectionFields = Projections.fields(
-                Projections.include( "email", "timezone", "calendar_id", "timerange", "start", "end", "days"),
+                Projections.include( "email", "timezone", "calendar_id", "preferred_timerange", "start", "end", "days", "suboptimal_timerange", "suboptimal_start", "suboptimal_end", "suboptimal_days"),
                 Projections.excludeId());
         Document doc = (Document) collection.find(eq("email", user.email)).projection(projectionFields).first();
         return doc;
@@ -90,7 +100,7 @@ public class DatabaseManager {
     public static Document fetchUser(MongoCollection collection, String email) {
 
         Bson projectionFields = Projections.fields(
-                Projections.include("email", "access_token", "refresh_token", "expires_at", "scope", "token_type", "timezone", "calendar_id", "timerange", "start", "end", "days"),
+                Projections.include("email", "access_token", "refresh_token", "expires_at", "scope", "token_type", "timezone", "calendar_id", "preferred_timerange", "start", "end", "days", "suboptimal_timerange", "suboptimal_start", "suboptimal_end", "suboptimal_days"),
                 Projections.excludeId());
         Document doc = (Document) collection.find(eq("email", email)).projection(projectionFields).first();
         return doc;
