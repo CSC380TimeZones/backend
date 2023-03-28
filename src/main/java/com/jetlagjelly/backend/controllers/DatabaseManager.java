@@ -124,7 +124,15 @@ public class DatabaseManager {
         return accessToken;
     }
 
-    public static void setTimezone(DatabaseManager.User user, int tz) {
+    public static void setTimezone(User user, int tz) {
         user.timezone = tz;
+    }
+
+    public static void updateTokens(User user, String access_token, int expires_at, String refresh_token, List<String> scope, String token_type) {
+        user.access_token = access_token;
+        user.expires_at = expires_at;
+        user.refresh_token = refresh_token;
+        user.scope = scope;
+        user.token_type = token_type;
     }
 }
