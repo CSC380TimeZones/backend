@@ -135,4 +135,20 @@ public class DatabaseManager {
         user.scope = scope;
         user.token_type = token_type;
     }
+
+    public static void addCalendar(User user, String id){
+        user.calendar_id.add(id);
+    }
+
+    public static void addTimeRange(User user, Integer start, Integer end, String day){ //need parameter for day of the week (slot in the list (or rather array[7]?)?)?
+        user.start.add(start);
+        user.end.add(end);
+        user.days.add(day);
+    }
+
+    public static void addSuboptimalTimes(User user, Integer start, Integer end, String day){
+        user.substart.add(start);
+        user.subend.add(end);
+        user.subdays.add(day);
+    }
 }
