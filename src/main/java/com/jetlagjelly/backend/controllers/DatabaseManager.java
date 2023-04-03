@@ -8,20 +8,19 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.Sorts;
-import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import javax.mail.*;
 import javax.mail.internet.*;
-import javax.activation.*;
 import javax.mail.Session;
 import javax.mail.Transport;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,8 +40,8 @@ public class DatabaseManager {
         cida.add("calendar_id");
         List<DayOfWeek> dya = new ArrayList<>();
         dya.add(DayOfWeek.MONDAY);
-        List<String> sd = new ArrayList<>();
-        sd.add("sub-optimal days");
+        List<DayOfWeek> sd = new ArrayList<>();
+        sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
         sta.add(3);
         List<Integer> ena = new ArrayList<>();
@@ -52,7 +51,7 @@ public class DatabaseManager {
         List<Integer> se = new ArrayList<>();
         se.add(8);
 
-        User user = new User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", 8, cida, sta, ena, dya, ss, se, sd);
+        User user = new User("bmclean03@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
 
         Document document;
@@ -68,7 +67,7 @@ public class DatabaseManager {
 
         //deleteUser(collection, user);
 
-        //setTimezone(user, 13);
+        //setTimezone(user, "Europe/Malta");
         //document = newUser(user);
         //deleteUser(collection, user);
         //collection.insertOne(document);
@@ -84,15 +83,15 @@ public class DatabaseManager {
         int expires_at;
         List<String> scope;
         String token_type;
-        int timezone;
+        String timezone;
         List<String> calendar_id;
         List<Integer> start;
         List<Integer> end;
         List<DayOfWeek> days;
         List<Integer> substart;
         List<Integer> subend;
-        List<String> subdays;
-        User(String em, String a, String r, int ex, List<String> sc, String tt, int t, List<String> cid, List<Integer> s, List<Integer> e, List<DayOfWeek> d, List<Integer> ss, List<Integer> se, List<String> sd) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d; substart = ss; subend = se; subdays = sd;}
+        List<DayOfWeek> subdays;
+        User(String em, String a, String r, int ex, List<String> sc, String tt, String t, List<String> cid, List<Integer> s, List<Integer> e, List<DayOfWeek> d, List<Integer> ss, List<Integer> se, List<DayOfWeek> sd) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d; substart = ss; subend = se; subdays = sd;}
     }
 
     public static Document newUser(User user) {
@@ -142,7 +141,7 @@ public class DatabaseManager {
         return accessToken;
     }
 
-    public static void setTimezone(User user, int tz) {
+    public static void setTimezone(User user, String tz) {
         user.timezone = tz;
     }
 
@@ -164,7 +163,7 @@ public class DatabaseManager {
         user.days.add(day);
     }
 
-    public static void addSuboptimalTimes(User user, Integer start, Integer end, String day){
+    public static void addSuboptimalTimes(User user, Integer start, Integer end, DayOfWeek day){
         user.substart.add(start);
         user.subend.add(end);
         user.subdays.add(day);
@@ -173,7 +172,7 @@ public class DatabaseManager {
     public static void sendEmail(String recipient) {
 
         final String username = "jetlagjelly@gmail.com";
-        final String password = "Ask Bryan for password";
+        final String password = "ask Bryan";
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
@@ -212,15 +211,20 @@ public class DatabaseManager {
     }
 
     public static List concreteTime(User user) {
-        List<String> ranges = new ArrayList<>();
-        String range;
+        List<Long> ranges = new ArrayList<>();
         for(int i = 0; i < user.days.size(); i++) {
             List<DayOfWeek> day = new ArrayList<>();
             day.add(user.days.get(i));
             LocalDateTime start = getNextClosestDateTime(day, user.start.get(i));
             LocalDateTime end = getNextClosestDateTime(day, user.end.get(i));
-            range = start + " - " + end;
-            ranges.add(range);
+            ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
+            long startTime = zdtstart.toInstant().toEpochMilli();
+
+            ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.of(user.timezone));
+            long endTime = zdtend.toInstant().toEpochMilli();
+
+            ranges.add(startTime);
+            ranges.add(endTime);
         }
         return ranges;
     }
