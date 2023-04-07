@@ -24,26 +24,26 @@ class DatabaseManagerTest {
 
 
         List<String> sca = new ArrayList<>();
-        sca.add("sc");
+        sca.add("create");
         List<String> cida = new ArrayList<>();
-        cida.add("calendar_id");
+        cida.add("Phases of the Moon");
         List<DayOfWeek> dya = new ArrayList<>();
         dya.add(DayOfWeek.MONDAY);
         dya.add(DayOfWeek.FRIDAY);
         List<DayOfWeek> sd = new ArrayList<>();
         sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
-        sta.add(3);
-        sta.add(12);
+        sta.add(300);
+        sta.add(1200);
         List<Integer> ena = new ArrayList<>();
-        ena.add(4);
-        ena.add(8);
+        ena.add(400);
+        ena.add(2000);
         List<Integer> ss = new ArrayList<>();
-        ss.add(2);
+        ss.add(200);
         List<Integer> se = new ArrayList<>();
-        se.add(8);
+        se.add(800);
 
-        DatabaseManager.User user = new DatabaseManager.User("testemail@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
 
         Document document;
@@ -59,26 +59,26 @@ class DatabaseManagerTest {
 
 
         List<String> sca = new ArrayList<>();
-        sca.add("sc");
+        sca.add("create");
         List<String> cida = new ArrayList<>();
-        cida.add("calendar_id");
+        cida.add("Phases of the Moon");
         List<DayOfWeek> dya = new ArrayList<>();
         dya.add(DayOfWeek.MONDAY);
         dya.add(DayOfWeek.FRIDAY);
         List<DayOfWeek> sd = new ArrayList<>();
         sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
-        sta.add(3);
-        sta.add(12);
+        sta.add(300);
+        sta.add(1200);
         List<Integer> ena = new ArrayList<>();
-        ena.add(4);
-        ena.add(8);
+        ena.add(400);
+        ena.add(2000);
         List<Integer> ss = new ArrayList<>();
-        ss.add(2);
+        ss.add(200);
         List<Integer> se = new ArrayList<>();
-        se.add(8);
+        se.add(800);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
         Document document;
 
@@ -96,7 +96,7 @@ class DatabaseManagerTest {
 
 
         List<String> sca = new ArrayList<>();
-        sca.add("sc");
+        sca.add("create");
         List<String> cida = new ArrayList<>();
         cida.add("Phases of the Moon");
         List<DayOfWeek> dya = new ArrayList<>();
@@ -105,17 +105,17 @@ class DatabaseManagerTest {
         List<DayOfWeek> sd = new ArrayList<>();
         sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
-        sta.add(3);
-        sta.add(12);
+        sta.add(300);
+        sta.add(1200);
         List<Integer> ena = new ArrayList<>();
-        ena.add(4);
-        ena.add(8);
+        ena.add(400);
+        ena.add(2000);
         List<Integer> ss = new ArrayList<>();
-        ss.add(2);
+        ss.add(200);
         List<Integer> se = new ArrayList<>();
-        se.add(8);
+        se.add(800);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
         Document document;
 
@@ -133,7 +133,7 @@ class DatabaseManagerTest {
 
 
         List<String> sca = new ArrayList<>();
-        sca.add("sc");
+        sca.add("create");
         List<String> cida = new ArrayList<>();
         cida.add("Phases of the Moon");
         List<DayOfWeek> dya = new ArrayList<>();
@@ -142,17 +142,17 @@ class DatabaseManagerTest {
         List<DayOfWeek> sd = new ArrayList<>();
         sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
-        sta.add(3);
-        sta.add(12);
+        sta.add(300);
+        sta.add(1200);
         List<Integer> ena = new ArrayList<>();
-        ena.add(4);
-        ena.add(8);
+        ena.add(400);
+        ena.add(2000);
         List<Integer> ss = new ArrayList<>();
-        ss.add(2);
+        ss.add(200);
         List<Integer> se = new ArrayList<>();
-        se.add(8);
+        se.add(800);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
         Document document;
 
@@ -171,7 +171,7 @@ class DatabaseManagerTest {
 
 
         List<String> sca = new ArrayList<>();
-        sca.add("sc");
+        sca.add("create");
         List<String> cida = new ArrayList<>();
         cida.add("Phases of the Moon");
         List<DayOfWeek> dya = new ArrayList<>();
@@ -180,17 +180,17 @@ class DatabaseManagerTest {
         List<DayOfWeek> sd = new ArrayList<>();
         sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
-        sta.add(3);
-        sta.add(12);
+        sta.add(300);
+        sta.add(1200);
         List<Integer> ena = new ArrayList<>();
-        ena.add(4);
-        ena.add(8);
+        ena.add(400);
+        ena.add(2000);
         List<Integer> ss = new ArrayList<>();
-        ss.add(2);
+        ss.add(200);
         List<Integer> se = new ArrayList<>();
-        se.add(8);
+        se.add(800);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
         Document document;
 
@@ -200,5 +200,38 @@ class DatabaseManagerTest {
         collection.insertOne(document);
 
         assertEquals("Europe/Malta", user.timezone);
+    }
+
+    @Test
+    void concreteUser() {
+        MongoClient client = MongoClients.create("mongodb://localhost:27017/");
+        MongoDatabase db = client.getDatabase("JetLagJelly");
+        MongoCollection collection = db.getCollection("users");
+
+
+        List<String> sca = new ArrayList<>();
+        sca.add("create");
+        List<String> cida = new ArrayList<>();
+        cida.add("Phases of the Moon");
+        List<DayOfWeek> dya = new ArrayList<>();
+        dya.add(DayOfWeek.MONDAY);
+        dya.add(DayOfWeek.FRIDAY);
+        List<DayOfWeek> sd = new ArrayList<>();
+        sd.add(DayOfWeek.TUESDAY);
+        List<Integer> sta = new ArrayList<>();
+        sta.add(300);
+        sta.add(1200);
+        List<Integer> ena = new ArrayList<>();
+        ena.add(400);
+        ena.add(2000);
+        List<Integer> ss = new ArrayList<>();
+        ss.add(200);
+        List<Integer> se = new ArrayList<>();
+        se.add(800);
+
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+
+
+        System.out.println(DatabaseManager.concreteTime(user));
     }
 }

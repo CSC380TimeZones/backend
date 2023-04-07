@@ -4,14 +4,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import com.jetlagjelly.backend.Endpoints;
+
+import java.time.DayOfWeek;
 
 @SpringBootTest
 class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
-		assertEquals("Hello World!", Endpoints.helloWorld("World"));
+		Endpoints.getMeetingConstraints("bmclean2@oswego.edu", 120, DayOfWeek.TUESDAY, DayOfWeek.FRIDAY);
 	}
+
+
 
 }
