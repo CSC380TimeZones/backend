@@ -1,10 +1,13 @@
 package com.jetlagjelly.backend.models;
 
+import java.time.DayOfWeek;
+
 public class MeetingContraint {
 
     private String email;
     private int mtngLength;
-    private int daysInAdv;
+    private DayOfWeek startDay;
+    private DayOfWeek endDay;
 
     public String getEmail() {
         return email;
@@ -22,11 +25,20 @@ public class MeetingContraint {
         this.mtngLength = mtngLength;
     }
 
-    public int getDaysInAdv() {
-        return daysInAdv;
+
+    public DayOfWeek getStartDay() {
+        return startDay;
     }
 
-    public void setDaysInAdv(int daysInAdv) {
-        this.daysInAdv = daysInAdv;
+    public void setStartDay(DayOfWeek startDay) {
+        this.startDay = startDay;
+    }
+
+    public DayOfWeek getEndDay() {
+        return endDay;
+    }
+
+    public void setEndDay(DayOfWeek endDay) {
+        this.endDay = endDay;
     }
 }
