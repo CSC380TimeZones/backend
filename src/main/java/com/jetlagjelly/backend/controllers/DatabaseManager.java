@@ -9,7 +9,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 
-import java.sql.Timestamp;
+import java.sql.Time;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,23 +35,26 @@ public class DatabaseManager {
 
 
         List<String> sca = new ArrayList<>();
-        sca.add("sc");
+        sca.add("create");
         List<String> cida = new ArrayList<>();
-        cida.add("calendar_id");
+        cida.add("Phases of the Moon");
         List<DayOfWeek> dya = new ArrayList<>();
         dya.add(DayOfWeek.MONDAY);
+        dya.add(DayOfWeek.FRIDAY);
         List<DayOfWeek> sd = new ArrayList<>();
         sd.add(DayOfWeek.TUESDAY);
         List<Integer> sta = new ArrayList<>();
-        sta.add(3);
+        sta.add(300);
+        sta.add(1200);
         List<Integer> ena = new ArrayList<>();
-        ena.add(4);
+        ena.add(400);
+        ena.add(2000);
         List<Integer> ss = new ArrayList<>();
-        ss.add(2);
+        ss.add(200);
         List<Integer> se = new ArrayList<>();
-        se.add(8);
+        se.add(800);
 
-        User user = new User("bmclean03@oswego.edu", "at", "rt", 6,sca, "tt", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
 
 
         Document document;
@@ -60,7 +63,7 @@ public class DatabaseManager {
 
 
         //document = fetchUser(collection, "bmclean2@oswego.edu");
-        //System.out.println(document.get("access_token"));
+        //System.out.println(document.get("calendar_id"));
 
         //document = meetingMgr(collection, user);
         //System.out.println(document);
@@ -172,7 +175,7 @@ public class DatabaseManager {
     public static void sendEmail(String recipient) {
 
         final String username = "jetlagjelly@gmail.com";
-        final String password = "ask Bryan";
+        final String password = "cyorbvwieztktuly";
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
@@ -236,9 +239,19 @@ public class DatabaseManager {
             throw new IllegalArgumentException("daysOfWeek should not be empty.");
         }
 
+        String hours = Integer.toString(hour);
+        int timeHours = 0;
+        int mins = 0;
+        if (hours.length() == 4) {
+            timeHours = Integer.parseInt(hours.substring(0, 2));
+            mins = Integer.parseInt(hours.substring(2));
+        } else {
+            timeHours = Integer.parseInt(hours.substring(0, 1));
+            mins = Integer.parseInt(hours.substring(1));
+        }
+
         final LocalDateTime dateNow = LocalDateTime.now();
-        final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(hour)
-                .withMinute(0).withSecond(0).withNano(0);
+        final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(mins).withSecond(0).withNano(0);
 
         return daysOfWeek
                 .stream()
