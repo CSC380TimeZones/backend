@@ -38,11 +38,11 @@ public class DatabaseManager {
         sca.add("create");
         List<String> cida = new ArrayList<>();
         cida.add("Phases of the Moon");
-        List<DayOfWeek> dya = new ArrayList<>();
-        dya.add(DayOfWeek.MONDAY);
-        dya.add(DayOfWeek.FRIDAY);
-        List<DayOfWeek> sd = new ArrayList<>();
-        sd.add(DayOfWeek.TUESDAY);
+        List<Integer> dya = new ArrayList<>();
+        dya.add(1);
+        dya.add(5);
+        List<Integer> sd = new ArrayList<>();
+        sd.add(2);
         List<Integer> sta = new ArrayList<>();
         sta.add(300);
         sta.add(1200);
@@ -58,8 +58,8 @@ public class DatabaseManager {
 
 
         Document document;
-        //document = newUser(user);
-        //collection.insertOne(document);
+        document = newUser(user);
+        collection.insertOne(document);
 
 
         //document = fetchUser(collection, "bmclean2@oswego.edu");
@@ -75,26 +75,26 @@ public class DatabaseManager {
         //deleteUser(collection, user);
         //collection.insertOne(document);
 
-        System.out.println(concreteTime(user));
+        //System.out.println(concreteTime(user));
 
     }
 
-    static final class User {
-        String email;
-        String access_token;
-        String refresh_token;
-        int expires_at;
-        List<String> scope;
-        String token_type;
-        String timezone;
-        List<String> calendar_id;
-        List<Integer> start;
-        List<Integer> end;
-        List<DayOfWeek> days;
-        List<Integer> substart;
-        List<Integer> subend;
-        List<DayOfWeek> subdays;
-        User(String em, String a, String r, int ex, List<String> sc, String tt, String t, List<String> cid, List<Integer> s, List<Integer> e, List<DayOfWeek> d, List<Integer> ss, List<Integer> se, List<DayOfWeek> sd) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d; substart = ss; subend = se; subdays = sd;}
+    public static final class User {
+        public String email;
+        public String access_token;
+        public String refresh_token;
+        public int expires_at;
+        public List<String> scope;
+        public String token_type;
+        public String timezone;
+        public List<String> calendar_id;
+        public List<Integer> start;
+        public List<Integer> end;
+        public List<Integer> days;
+        public List<Integer> substart;
+        public List<Integer> subend;
+        public List<Integer> subdays;
+        public User(String em, String a, String r, int ex, List<String> sc, String tt, String t, List<String> cid, List<Integer> s, List<Integer> e, List<Integer> d, List<Integer> ss, List<Integer> se, List<Integer> sd) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d; substart = ss; subend = se; subdays = sd;}
     }
 
     public static Document newUser(User user) {
@@ -160,13 +160,13 @@ public class DatabaseManager {
         user.calendar_id.add(id);
     }
 
-    public static void addTimeRange(User user, Integer start, Integer end, DayOfWeek day){ //need parameter for day of the week (slot in the list (or rather array[7]?)?)?
+    public static void addTimeRange(User user, Integer start, Integer end, Integer day){ //need parameter for day of the week (slot in the list (or rather array[7]?)?)?
         user.start.add(start);
         user.end.add(end);
         user.days.add(day);
     }
 
-    public static void addSuboptimalTimes(User user, Integer start, Integer end, DayOfWeek day){
+    public static void addSuboptimalTimes(User user, Integer start, Integer end, Integer day){
         user.substart.add(start);
         user.subend.add(end);
         user.subdays.add(day);
@@ -175,7 +175,7 @@ public class DatabaseManager {
     public static void sendEmail(String recipient) {
 
         final String username = "jetlagjelly@gmail.com";
-        final String password = "cyorbvwieztktuly";
+        final String password = "ask bryan";
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
@@ -217,7 +217,7 @@ public class DatabaseManager {
         List<Long> ranges = new ArrayList<>();
         for(int i = 0; i < user.days.size(); i++) {
             List<DayOfWeek> day = new ArrayList<>();
-            day.add(user.days.get(i));
+            day.add(DayOfWeek.of(user.days.get(i)));
             LocalDateTime start = getNextClosestDateTime(day, user.start.get(i));
             LocalDateTime end = getNextClosestDateTime(day, user.end.get(i));
             ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
