@@ -1,4 +1,4 @@
-package main.java.com.jetlagjelly.backend;
+package com.jetlagjelly.backend;
 
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.CalendarList;
@@ -29,7 +29,7 @@ import java.security.GeneralSecurityException;
 import java.util.*;
 
 /* class to demonstarte use of Calendar events list API */
-public class CalendarQuickStart {
+public class CalendarQuickstart {
     /**
      * Application name.
      */
