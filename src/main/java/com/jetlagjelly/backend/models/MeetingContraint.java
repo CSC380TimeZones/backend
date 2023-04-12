@@ -6,8 +6,8 @@ public class MeetingContraint {
 
     private String email;
     private int mtngLength;
-    private DayOfWeek startDay;
-    private DayOfWeek endDay;
+    private Long startDay;
+    private Long endDay;
 
     public String getEmail() {
         return email;
@@ -26,19 +26,19 @@ public class MeetingContraint {
     }
 
 
-    public DayOfWeek getStartDay() {
+    public Long getStartDay() {
         return startDay;
     }
 
-    public void setStartDay(DayOfWeek startDay) {
+    public void setStartDay(Long startDay) {
         this.startDay = startDay;
     }
 
-    public DayOfWeek getEndDay() {
+    public Long getEndDay() {
         return endDay;
     }
 
-    public void setEndDay(DayOfWeek endDay) {
+    public void setEndDay(Long endDay) {
         this.endDay = endDay;
     }
 }
