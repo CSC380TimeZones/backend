@@ -1,6 +1,9 @@
 package com.jetlagjelly.backend.controllers;
 
+import static com.jetlagjelly.backend.Endpoints.mc;
 import static com.mongodb.client.model.Filters.eq;
+
+import com.jetlagjelly.backend.models.MeetingContraint;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import com.mongodb.client.MongoClient;
@@ -10,10 +13,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 
 import java.sql.Time;
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import javax.mail.*;
@@ -58,8 +58,8 @@ public class DatabaseManager {
 
 
         Document document;
-        document = newUser(user);
-        collection.insertOne(document);
+        //document = newUser(user);
+        //collection.insertOne(document);
 
 
         //document = fetchUser(collection, "bmclean2@oswego.edu");
@@ -75,7 +75,7 @@ public class DatabaseManager {
         //deleteUser(collection, user);
         //collection.insertOne(document);
 
-        //System.out.println(concreteTime(user));
+        System.out.println(concreteTime(user, mc));
 
     }
 
@@ -213,13 +213,13 @@ public class DatabaseManager {
         }
     }
 
-    public static List concreteTime(User user) {
+    public static List concreteTime(User user, MeetingContraint mc) {
         List<Long> ranges = new ArrayList<>();
+        List<DayOfWeek> day = new ArrayList<>();
         for(int i = 0; i < user.days.size(); i++) {
-            List<DayOfWeek> day = new ArrayList<>();
             day.add(DayOfWeek.of(user.days.get(i)));
-            LocalDateTime start = getNextClosestDateTime(day, user.start.get(i));
-            LocalDateTime end = getNextClosestDateTime(day, user.end.get(i));
+            LocalDateTime start = getNextClosestDateTime(day, user.start.get(i), mc.getStartDay(), user);
+            LocalDateTime end = getNextClosestDateTime(day, user.end.get(i), mc.getStartDay(), user);
             ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
             long startTime = zdtstart.toInstant().toEpochMilli();
 
@@ -229,11 +229,27 @@ public class DatabaseManager {
             ranges.add(startTime);
             ranges.add(endTime);
         }
+
+        for(int i = 1; i <= 5; i++) {
+            if(!day.contains(DayOfWeek.of(i))) {
+                day.add(DayOfWeek.of(i));
+                LocalDateTime start = getNextClosestDateTime(day, 900, mc.getStartDay(), user);
+                LocalDateTime end = getNextClosestDateTime(day, 1700, mc.getStartDay(), user);
+                ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
+                long startTime = zdtstart.toInstant().toEpochMilli();
+
+                ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.of(user.timezone));
+                long endTime = zdtend.toInstant().toEpochMilli();
+
+                ranges.add(startTime);
+                ranges.add(endTime);
+            }
+        }
         return ranges;
     }
 
     public static LocalDateTime getNextClosestDateTime(
-            List<DayOfWeek> daysOfWeek, int hour)
+            List<DayOfWeek> daysOfWeek, int hour, long meetingStartTime, User user)
             throws IllegalArgumentException {
         if (daysOfWeek.isEmpty()) {
             throw new IllegalArgumentException("daysOfWeek should not be empty.");
@@ -250,7 +266,8 @@ public class DatabaseManager {
             mins = Integer.parseInt(hours.substring(1));
         }
 
-        final LocalDateTime dateNow = LocalDateTime.now();
+        Long c = 1681757851000L;
+        final LocalDateTime dateNow = LocalDateTime.ofInstant(Instant.ofEpochMilli(meetingStartTime), ZoneId.of(user.timezone));
         final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(mins).withSecond(0).withNano(0);
 
         return daysOfWeek
