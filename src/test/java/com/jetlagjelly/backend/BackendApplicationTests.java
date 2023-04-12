@@ -12,7 +12,7 @@ class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
-		Endpoints.getMeetingConstraints("bmclean2@oswego.edu randomperson@oswego.edu", 120, DayOfWeek.TUESDAY, DayOfWeek.FRIDAY);
+		Endpoints.getMeetingConstraints("bmclean2@oswego.edu randomperson@oswego.edu", 120, 1681736400000L, 1682110800000L);
 		Endpoints.intersectSubmit();
 	}
 
