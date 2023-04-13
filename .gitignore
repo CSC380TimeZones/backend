@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+.DS_Store
+credentials.json
+src/client_secret_1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com (1).json

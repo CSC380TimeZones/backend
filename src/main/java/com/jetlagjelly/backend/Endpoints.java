@@ -5,6 +5,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
+import static com.jetlagjelly.backend.models.MeetingTimes.setEndTimes;
+import static com.jetlagjelly.backend.models.MeetingTimes.setStartTimes;
 
 @RestController
 public class Endpoints {
@@ -19,5 +28,12 @@ public class Endpoints {
         mc.setEndDay(endDay);
 
         return mc;
+    }
+
+    @GetMapping("/oauth2callback")
+    public static void callbackHandler(@RequestParam(value = "code", defaultValue = "none") String code)
+    throws IOException, GeneralSecurityException {
+        System.out.println(code);
+        BackendApplication.exchangeCode(code);
     }
 }
