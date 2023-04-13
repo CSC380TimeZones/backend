@@ -28,7 +28,6 @@ import static com.jetlagjelly.backend.models.MeetingTimes.setStartTimes;
 public class Endpoints {
 
     public static MeetingContraint mc = new MeetingContraint();
-    static DatabaseManager dm = new DatabaseManager();
 
     public static MongoCollection collection() {
         MongoClient client = MongoClients.create("mongodb://localhost:27017/");
@@ -38,18 +37,13 @@ public class Endpoints {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/email")
-    public static MeetingContraint getMeetingConstraints(@RequestParam(value = "email", defaultValue = "No email found!") String email, @RequestParam(value = "mtngLength", defaultValue = "60") int mtngLength, @RequestParam(value = "startDay", defaultValue = "100000000000") Long startDay, @RequestParam(value = "endDay", defaultValue = "1000000000") Long endDay) {
+    public static MeetingTimes getMeetingConstraints(@RequestParam(value = "email", defaultValue = "No email found!") String email, @RequestParam(value = "mtngLength", defaultValue = "60") int mtngLength, @RequestParam(value = "startDay", defaultValue = "100000000000") Long startDay, @RequestParam(value = "endDay", defaultValue = "1000000000") Long endDay) {
 
         mc.setEmail(email);
         mc.setMtngLength(mtngLength);
         mc.setStartDay(startDay);
         mc.setEndDay(endDay);
 
-        return mc;
-    }
-
-    @PutMapping("/output")
-    public static MeetingTimes intersectSubmit() {
         MeetingManager mm = new MeetingManager();
         String ls = mc.getEmail();
         ArrayList<String> emailList = new ArrayList<>();
@@ -65,8 +59,9 @@ public class Endpoints {
             DatabaseManager.User user = new DatabaseManager.User(s, d.getString("access_token"), d.getString("refresh_token"), d.getInteger("expires_at"), (List<String>) d.get("scope"), d.getString("token_type"), d.getString("timezone"), (List<String>) d.get("calendar_id"), (List<Integer>) pt.get("start"), (List<Integer>) pt.get("end"), (List<Integer>) pt.get("days"), (List<Integer>) st.get("suboptimal_start"), (List<Integer>) st.get("suboptimal_end"), (List<Integer>) st.get("suboptimal_days"));
             a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
         }
+        //System.out.println(a);
         ArrayList<Long> p = mm.intersectMany(a);
-        System.out.println(p);
+        //System.out.println(p);
         MeetingTimes mt = new MeetingTimes();
         for(int i = 0; i < p.size(); i++) {
             if (i % 2 == 1) {
@@ -76,10 +71,9 @@ public class Endpoints {
             }
         }
 
-        System.out.println(mc.getStartDay());
-
         System.out.println("startTimes:  " + mt.startTimes);
         System.out.println("endTimes:  " + mt.endTimes);
+
         return mt;
     }
 }
