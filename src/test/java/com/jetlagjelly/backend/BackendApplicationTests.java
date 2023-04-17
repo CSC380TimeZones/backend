@@ -12,11 +12,7 @@ class BackendApplicationTests {
 
 	@Test
 	void contextLoads() {
-		Endpoints.getMeetingConstraints("bmclean2@oswego.edu randomperson@oswego.edu", 120, 1681736400000L, 1682110800000L);
+		Endpoints.getMeetingConstraints("bmclean2@oswego.edu randomperson@oswego.edu", 120, 1682308800000L, 1682110800000L);
 	}
-
-
-
-
 
 }
