@@ -218,7 +218,7 @@ public class DatabaseManager {
         List<DayOfWeek> day = new ArrayList<>();
         List<DayOfWeek> unusedDay = new ArrayList<>();
         List<DayOfWeek> dbDay = new ArrayList<>();
-        List<Long> sortedRanges = new ArrayList<>();
+
 
         for(int i = 0; i < user.days.size(); i++) {
             day.add(DayOfWeek.of(user.days.get(i)));
@@ -253,9 +253,58 @@ public class DatabaseManager {
                 unusedDay.remove(DayOfWeek.of(i));
             }
         }
+
         Collections.sort(ranges);
         return ranges;
     }
+
+
+    public static List concreteSubTime(User user, MeetingContraint mc) {
+        List<Long> subranges = new ArrayList<>();
+        List<DayOfWeek> subday = new ArrayList<>();
+        List<DayOfWeek> subunusedDay = new ArrayList<>();
+        List<DayOfWeek> subdbDay = new ArrayList<>();
+
+
+        for (int i = 0; i < user.subdays.size(); i++) {
+            subday.add(DayOfWeek.of(user.subdays.get(i)));
+            subdbDay.add(DayOfWeek.of(user.subdays.get(i)));
+            LocalDateTime start = getNextClosestDateTime(subdbDay, user.substart.get(i), mc.getStartDay(), user);
+            LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(i), mc.getStartDay(), user);
+            ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
+            long startTime = zdtstart.toInstant().toEpochMilli();
+
+            ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.of(user.timezone));
+            long endTime = zdtend.toInstant().toEpochMilli();
+
+            subranges.add(startTime);
+            subranges.add(endTime);
+            subdbDay.remove(DayOfWeek.of(user.subdays.get(i)));
+        }
+
+        for (int i = 1; i <= 5; i++) {
+            if (!subday.contains(DayOfWeek.of(i))) {
+                subday.add(DayOfWeek.of(i));
+                subunusedDay.add(DayOfWeek.of(i));
+                LocalDateTime start = getNextClosestDateTime(subunusedDay, 900, mc.getStartDay(), user);
+                LocalDateTime end = getNextClosestDateTime(subunusedDay, 1700, mc.getStartDay(), user);
+                ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
+                long startTime = zdtstart.toInstant().toEpochMilli();
+
+                ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.of(user.timezone));
+                long endTime = zdtend.toInstant().toEpochMilli();
+
+                subranges.add(startTime);
+                subranges.add(endTime);
+                subunusedDay.remove(DayOfWeek.of(i));
+            }
+        }
+        Collections.sort(subranges);
+        return subranges;
+    }
+
+
+
 
     public static LocalDateTime getNextClosestDateTime(
             List<DayOfWeek> daysOfWeek, int hour, long meetingStartTime, User user)
