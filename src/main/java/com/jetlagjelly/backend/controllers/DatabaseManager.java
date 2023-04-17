@@ -175,7 +175,7 @@ public class DatabaseManager {
     public static void sendEmail(String recipient) {
 
         final String username = "jetlagjelly@gmail.com";
-        final String password = "ask bryan";
+        final String password = "cyorbvwieztktuly";
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
@@ -216,10 +216,15 @@ public class DatabaseManager {
     public static List concreteTime(User user, MeetingContraint mc) {
         List<Long> ranges = new ArrayList<>();
         List<DayOfWeek> day = new ArrayList<>();
+        List<DayOfWeek> unusedDay = new ArrayList<>();
+        List<DayOfWeek> dbDay = new ArrayList<>();
+        List<Long> sortedRanges = new ArrayList<>();
+
         for(int i = 0; i < user.days.size(); i++) {
             day.add(DayOfWeek.of(user.days.get(i)));
-            LocalDateTime start = getNextClosestDateTime(day, user.start.get(i), mc.getStartDay(), user);
-            LocalDateTime end = getNextClosestDateTime(day, user.end.get(i), mc.getStartDay(), user);
+            dbDay.add(DayOfWeek.of(user.days.get(i)));
+            LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(i), mc.getStartDay(), user);
+            LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(i), mc.getStartDay(), user);
             ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
             long startTime = zdtstart.toInstant().toEpochMilli();
 
@@ -228,13 +233,15 @@ public class DatabaseManager {
 
             ranges.add(startTime);
             ranges.add(endTime);
+            dbDay.remove(DayOfWeek.of(user.days.get(i)));
         }
 
         for(int i = 1; i <= 5; i++) {
             if(!day.contains(DayOfWeek.of(i))) {
                 day.add(DayOfWeek.of(i));
-                LocalDateTime start = getNextClosestDateTime(day, 900, mc.getStartDay(), user);
-                LocalDateTime end = getNextClosestDateTime(day, 1700, mc.getStartDay(), user);
+                unusedDay.add(DayOfWeek.of(i));
+                LocalDateTime start = getNextClosestDateTime(unusedDay, 900, mc.getStartDay(), user);
+                LocalDateTime end = getNextClosestDateTime(unusedDay, 1700, mc.getStartDay(), user);
                 ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
                 long startTime = zdtstart.toInstant().toEpochMilli();
 
@@ -243,8 +250,10 @@ public class DatabaseManager {
 
                 ranges.add(startTime);
                 ranges.add(endTime);
+                unusedDay.remove(DayOfWeek.of(i));
             }
         }
+        Collections.sort(ranges);
         return ranges;
     }
 
@@ -266,7 +275,6 @@ public class DatabaseManager {
             mins = Integer.parseInt(hours.substring(1));
         }
 
-        Long c = 1681757851000L;
         final LocalDateTime dateNow = LocalDateTime.ofInstant(Instant.ofEpochMilli(meetingStartTime), ZoneId.of(user.timezone));
         final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(mins).withSecond(0).withNano(0);
 
