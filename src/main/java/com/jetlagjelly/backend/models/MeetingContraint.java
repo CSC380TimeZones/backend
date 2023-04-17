@@ -8,6 +8,8 @@ public class MeetingContraint {
     private int mtngLength;
     private Long startDay;
     private Long endDay;
+    private Long subStartDay;
+    private Long subEndDay;
 
     public String getEmail() {
         return email;
@@ -40,5 +42,21 @@ public class MeetingContraint {
 
     public void setEndDay(Long endDay) {
         this.endDay = endDay;
+    }
+
+    public Long getSubStartDay() {
+        return subStartDay;
+    }
+
+    public void setSubStartDay(Long subStartDay) {
+        this.subStartDay = subStartDay;
+    }
+
+    public Long getSubEndDay() {
+        return subEndDay;
+    }
+
+    public void setSubEndDay(Long subEndDay) {
+        this.subEndDay = subEndDay;
     }
 }
