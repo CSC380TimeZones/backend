@@ -21,8 +21,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static com.jetlagjelly.backend.models.MeetingTimes.setEndTimes;
-import static com.jetlagjelly.backend.models.MeetingTimes.setStartTimes;
+import static com.jetlagjelly.backend.models.MeetingTimes.*;
 
 @RestController
 public class Endpoints {
@@ -50,7 +49,7 @@ public class Endpoints {
         String[] emailArray = ls.split(" ");
         Collections.addAll(emailList, emailArray);
         ArrayList<ArrayList<Long>> a = new ArrayList<>();
-
+        ArrayList<ArrayList<Long>> b = new ArrayList<>();
 
         for (String s : emailList) {
             Document d = DatabaseManager.fetchUser(collection(), s);
@@ -58,8 +57,9 @@ public class Endpoints {
             Document st = (Document) d.get("suboptimal_timerange");
             DatabaseManager.User user = new DatabaseManager.User(s, d.getString("access_token"), d.getString("refresh_token"), d.getInteger("expires_at"), (List<String>) d.get("scope"), d.getString("token_type"), d.getString("timezone"), (List<String>) d.get("calendar_id"), (List<Integer>) pt.get("start"), (List<Integer>) pt.get("end"), (List<Integer>) pt.get("days"), (List<Integer>) st.get("suboptimal_start"), (List<Integer>) st.get("suboptimal_end"), (List<Integer>) st.get("suboptimal_days"));
             a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
+            b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
         }
-        //System.out.println(a);
+        System.out.println(a);
         ArrayList<Long> p = mm.intersectMany(a);
         //System.out.println(p);
         MeetingTimes mt = new MeetingTimes();
@@ -70,9 +70,24 @@ public class Endpoints {
                 setStartTimes(p.get(i));
             }
         }
+        System.out.println(b);
+
+        ArrayList<Long> l = mm.intersectMany(b);
+        for(int i = 0; i < l.size(); i++) {
+            if (i % 2 == 1) {
+                setSubEndTimes(l.get(i));
+            } else if (i % 2 == 0) {
+                setSubStartTimes(l.get(i));
+            }
+        }
 
         System.out.println("startTimes:  " + mt.startTimes);
         System.out.println("endTimes:  " + mt.endTimes);
+
+        System.out.println("sub-times");
+
+        System.out.println("substartTimes:  " + mt.subStartTimes);
+        System.out.println("subendTimes:  " + mt.subEndTimes);
 
         return mt;
     }
