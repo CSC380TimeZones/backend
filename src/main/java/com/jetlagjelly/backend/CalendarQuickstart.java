@@ -79,7 +79,7 @@ public class CalendarQuickstart {
         return credential;
     }
 
-    public static void main(String... args) throws IOException, GeneralSecurityException {
+    public static void main(String[] args) throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Calendar service =
@@ -146,6 +146,7 @@ public class CalendarQuickstart {
                     .setSingleEvents(true)
                     .execute();
             List<Event> items = events.getItems();
+            
             if (items.isEmpty()) {
                 System.out.println("No upcoming events found.");
             } else {
