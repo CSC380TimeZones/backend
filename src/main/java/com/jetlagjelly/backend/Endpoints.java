@@ -91,4 +91,59 @@ public class Endpoints {
 
         return mt;
     }
+
+    @PutMapping("/timezone")
+    public static ResponseEntity<String> setTimezone(
+            @RequestParam(value = "email") String email,
+            @RequestParam(value = "timezone") String timezone) {
+        //set timezone in db
+        Document query = new Document("email", email);
+        Document update = new Document("$set", new Document("timezone", timezone));
+        collection().updateOne(query,update);
+        return ResponseEntity.ok("Timezone set!");
+    }
+
+    @PostMapping("/timerange")
+    public ResponseEntity<String> addTimeRange(
+            @RequestParam(value = "email") String email,
+            @RequestParam(value = "start") int start,
+            @RequestParam(value = "end") int end,
+            @RequestParam(value = "days") List<Integer> days) {
+        //add time range for user in db
+        Document query =  new Document("email", email);
+        Document update = new Document("$push", new Document("preferred_timerange.start", start)
+                .append("preferred_timerange.end", end)
+                .append("preferred_timerange.days", days));
+        collection().updateOne(query, update);
+        return ResponseEntity.ok("Time range added!");
+    }
+    @PatchMapping("/timerange")
+    public ResponseEntity<String> updateTimeRange(
+            @RequestParam(value = "email") String email,
+            @RequestParam(value = "start") int start,
+            @RequestParam(value = "end") int end,
+            @RequestParam(value = "days") List<Integer> days) {
+        //update time range for user in db
+        Document query =  new Document("email", email);
+        Document update = new Document("$push", new Document("preferred_timerange.start", start)
+                .append("preferred_timerange.end", end)
+                .append("preferred_timerange.days", days));
+        collection().updateOne(query, update);
+        return ResponseEntity.ok("Time range updated!");
+    }
+
+    @DeleteMapping("/timerange")
+    public ResponseEntity<String> removeTimeRange(
+            @RequestParam(value = "email") String email,
+            @RequestParam(value = "start") int start,
+            @RequestParam(value = "end") int end,
+            @RequestParam(value = "days") List<Integer> days) {
+        //remove time range  for user in db
+        Document query = new Document("email", email);
+        Document update = new Document("$pull", new Document("preferred_timerange.start", start)
+                .append("preferred_timerange.end", end)
+                .append("preffered_timerange.days", days));
+        collection().updateOne(query, update);
+        return ResponseEntity.ok("Time range removed!");
+    }
 }
