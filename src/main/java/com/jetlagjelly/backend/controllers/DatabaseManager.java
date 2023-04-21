@@ -27,11 +27,12 @@ import java.util.Properties;
 
 
 public class DatabaseManager {
-    public static void main(String[] args) {
 
-        MongoClient client = MongoClients.create("mongodb://localhost:27017/");
-        MongoDatabase db = client.getDatabase("JetLagJelly");
-        MongoCollection collection = db.getCollection("users");
+    public static MongoClient client = MongoClients.create("mongodb://localhost:27017/");
+    public static MongoDatabase db = client.getDatabase("JetLagJelly");
+    public static MongoCollection collection = db.getCollection("users");
+
+    public static void main(String[] args) {
 
 
         List<String> sca = new ArrayList<>();
@@ -175,7 +176,7 @@ public class DatabaseManager {
     public static void sendEmail(String recipient) {
 
         final String username = "jetlagjelly@gmail.com";
-        final String password = "";
+        final String password = "cyorbvwieztktuly";
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
