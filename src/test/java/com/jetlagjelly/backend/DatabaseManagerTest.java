@@ -8,11 +8,16 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.jetlagjelly.backend.CalendarQuickstart.events;
+import static com.jetlagjelly.backend.CalendarQuickstart.eventsList;
 import static com.jetlagjelly.backend.Endpoints.mc;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.deleteUser;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -46,7 +51,6 @@ class DatabaseManagerTest {
     @Test
     void newUser() {
         DatabaseManager.User user = constants();
-        MongoCollection collection = Endpoints.collection();
         Document document;
         document = DatabaseManager.newUser(user);
         collection.insertOne(document);
@@ -55,7 +59,6 @@ class DatabaseManagerTest {
     @Test
     void meetingMgr() {
         DatabaseManager.User user = constants();
-        MongoCollection collection = Endpoints.collection();
         Document document;
 
         document = DatabaseManager.meetingMgr(collection, user);
@@ -67,7 +70,6 @@ class DatabaseManagerTest {
     void fetchUser() {
 
         DatabaseManager.User user = constants();
-        MongoCollection collection = Endpoints.collection();
         Document document;
 
         document = DatabaseManager.fetchUser(collection, "bmclean2@oswego.edu");
@@ -79,7 +81,6 @@ class DatabaseManagerTest {
     void tokens() {
 
         DatabaseManager.User user = constants();
-        MongoCollection collection = Endpoints.collection();
         Document document;
 
         document = DatabaseManager.tokens(user);
@@ -92,7 +93,6 @@ class DatabaseManagerTest {
     void setTimezone() {
 
         DatabaseManager.User user = constants();
-        MongoCollection collection = Endpoints.collection();
         Document document;
 
         DatabaseManager.setTimezone(user, "Europe/Malta");
@@ -106,7 +106,6 @@ class DatabaseManagerTest {
     @Test
     void concreteUser() {
         DatabaseManager.User user = constants();
-        MongoCollection collection = Endpoints.collection();
 
         System.out.println(DatabaseManager.concreteTime(user, mc));
     }
