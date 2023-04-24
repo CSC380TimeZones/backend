@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.jetlagjelly.backend.CalendarQuickstart.events;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.newUser;
 import static com.jetlagjelly.backend.models.MeetingTimes.*;
 
 @RestController
@@ -105,11 +106,11 @@ public class Endpoints {
     }
 
     @PostMapping("/timerange")
-    public ResponseEntity<String> addTimeRange(
+    public static ResponseEntity<String> addTimeRange(
             @RequestParam(value = "email") String email,
             @RequestParam(value = "start") int start,
             @RequestParam(value = "end") int end,
-            @RequestParam(value = "days") List<Integer> days) {
+            @RequestParam(value = "days") int days) {
         // add time range for user in db
         Document query = new Document("email", email);
         Document update = new Document("$push", new Document("preferred_timerange.start", start)
@@ -124,7 +125,7 @@ public class Endpoints {
             @RequestParam(value = "email") String email,
             @RequestParam(value = "start") int start,
             @RequestParam(value = "end") int end,
-            @RequestParam(value = "days") List<Integer> days) {
+            @RequestParam(value = "days") int days) {
         // update time range for user in db
         Document query = new Document("email", email);
         Document update = new Document("$push", new Document("preferred_timerange.start", start)
@@ -139,7 +140,7 @@ public class Endpoints {
             @RequestParam(value = "email") String email,
             @RequestParam(value = "start") int start,
             @RequestParam(value = "end") int end,
-            @RequestParam(value = "days") List<Integer> days) {
+            @RequestParam(value = "days") int days) {
         // remove time range for user in db
         Document query = new Document("email", email);
         Document update = new Document("$pull", new Document("preferred_timerange.start", start)
@@ -147,5 +148,31 @@ public class Endpoints {
                 .append("preferred_timerange.days", days));
         collection.updateOne(query, update);
         return ResponseEntity.ok("Time range removed!");
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/newUser")
+    public static void addNewUser(
+            @RequestParam(value = "email") String email,
+            @RequestParam(value = "access_token") String access_token,
+            @RequestParam(value = "refresh_token") String refresh_token,
+            @RequestParam(value = "expires_at") int expires_at,
+            @RequestParam(value = "scope") List<String> scope,
+            @RequestParam(value = "token_type") String token_type,
+            @RequestParam(value = "timezone") String timezone,
+            @RequestParam(value = "calendar_id") List<String> calendar_id,
+            @RequestParam(value = "preferred_start") List<Integer> preferred_start,
+            @RequestParam(value = "preferred_end") List<Integer> preferred_end,
+            @RequestParam(value = "preferred_day") List<Integer> preferred_day,
+            @RequestParam(value = "suboptimal_start") List<Integer> suboptimal_start,
+            @RequestParam(value = "suboptimal_end") List<Integer> suboptimal_end,
+            @RequestParam(value = "suboptimal_day") List<Integer> suboptimal_day ) {
+
+        DatabaseManager.User user = new DatabaseManager.User(email, access_token,
+                refresh_token, expires_at, scope, token_type, timezone, calendar_id, preferred_start,
+                preferred_end, preferred_day, suboptimal_start, suboptimal_end, suboptimal_day);
+
+        Document document;
+        document = newUser(user);
+        collection.insertOne(document);
     }
 }
