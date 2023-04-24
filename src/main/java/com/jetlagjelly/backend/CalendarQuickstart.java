@@ -197,19 +197,18 @@ public class CalendarQuickstart {
         } while (pageToken != null);
 
         //print the name of all the calendars
-        System.out.println(calendarsListHT);
-        //System.out.println(calendarsListHT.values());
+        //System.out.println(calendarsListHT);
+        System.out.println(calendarsListHT.values());
 
         // Retrieve a single user timezone
         Setting setting = service.settings().get("timezone").execute();
         System.out.println(setting.getId() + ": " + setting.getValue());
 
-        // iterate through hash table and events for each calendar ID
+        // iterate through hash table and events for the required calendar ID
         for (String calendarID : calendarsListHT.keySet()) {
             if (calendarID.equals(requiredCalendarID)) {
                 System.out.println("\n" + calendarsListHT.get(calendarID));
                 Events events = service.events().list(calendarID)
-//                    .setMaxResults(10)
                         .setTimeMax(endTime)
                         .setTimeMin(startTime)
                         .setOrderBy("startTime")
