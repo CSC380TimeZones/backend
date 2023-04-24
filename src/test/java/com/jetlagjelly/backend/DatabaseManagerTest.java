@@ -1,24 +1,15 @@
-package com.jetlagjelly.backend.controllers;
+package com.jetlagjelly.backend;
 
-import com.jetlagjelly.backend.Endpoints;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.time.DayOfWeek;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.jetlagjelly.backend.CalendarQuickstart.events;
-import static com.jetlagjelly.backend.CalendarQuickstart.eventsList;
 import static com.jetlagjelly.backend.Endpoints.mc;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.deleteUser;
+import com.jetlagjelly.backend.controllers.DatabaseManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DatabaseManagerTest {
@@ -43,7 +34,9 @@ class DatabaseManagerTest {
         List<Integer> se = new ArrayList<>();
         se.add(800);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
+        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+                "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss,
+                se, sd);
 
         return user;
     }

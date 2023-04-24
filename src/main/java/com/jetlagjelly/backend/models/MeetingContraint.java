@@ -1,7 +1,5 @@
 package com.jetlagjelly.backend.models;
 
-import java.time.DayOfWeek;
-
 public class MeetingContraint {
 
     private String email;
@@ -26,7 +24,6 @@ public class MeetingContraint {
     public void setMtngLength(int mtngLength) {
         this.mtngLength = mtngLength;
     }
-
 
     public Long getStartDay() {
         return startDay;

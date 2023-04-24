@@ -74,11 +74,13 @@ public class DatabaseManager {
         List<Integer> se = new ArrayList<>();
         se.add(800);
 
-        User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
-                "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss,
-                se, sd);
+        // User user = new User("bmclean2@oswego.edu",
+        // "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+        // "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer",
+        // "America/New_York", cida, sta, ena, dya, ss,
+        // se, sd);
 
-        Document document;
+        // Document document;
         // document = newUser(user);
         // collection.insertOne(document);
 
