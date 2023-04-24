@@ -27,11 +27,21 @@ import java.util.Properties;
 
 
 public class DatabaseManager {
-    public static void main(String[] args) {
 
-        MongoClient client = MongoClients.create("mongodb://localhost:27017/");
-        MongoDatabase db = client.getDatabase("JetLagJelly");
-        MongoCollection collection = db.getCollection("users");
+
+
+    public static final String MONGODB_USER = System.getenv("MONGODB_USER");
+    public static final String MONGODB_PASSWORD = System.getenv("MONGODB_PASSWORD");
+    public static final String MONGODB_DATABASE = System.getenv("MONGODB_DATABASE");
+    public static final String MONGODB_LOCAL_PORT = System.getenv("MONGODB_LOCAL_PORT");
+
+    public static final String MONGODB_HOST = System.getenv("MONGODB_HOST");
+    public static MongoClient client = MongoClients.create("mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" + MONGODB_HOST + ":" + MONGODB_LOCAL_PORT );
+    public static MongoDatabase db = client.getDatabase(MONGODB_DATABASE);
+    public static MongoCollection collection = db.getCollection("users");
+
+
+    public static void main(String[] args) {
 
 
         List<String> sca = new ArrayList<>();
@@ -75,7 +85,7 @@ public class DatabaseManager {
         //deleteUser(collection, user);
         //collection.insertOne(document);
 
-        System.out.println(concreteTime(user, mc));
+        //System.out.println(concreteTime(user, mc));
 
     }
 
@@ -175,7 +185,7 @@ public class DatabaseManager {
     public static void sendEmail(String recipient) {
 
         final String username = "jetlagjelly@gmail.com";
-        final String password = "ask bryan";
+        final String password = "cyorbvwieztktuly";
 
         Properties prop = new Properties();
         prop.put("mail.smtp.host", "smtp.gmail.com");
@@ -216,10 +226,15 @@ public class DatabaseManager {
     public static List concreteTime(User user, MeetingContraint mc) {
         List<Long> ranges = new ArrayList<>();
         List<DayOfWeek> day = new ArrayList<>();
+        List<DayOfWeek> unusedDay = new ArrayList<>();
+        List<DayOfWeek> dbDay = new ArrayList<>();
+
+
         for(int i = 0; i < user.days.size(); i++) {
             day.add(DayOfWeek.of(user.days.get(i)));
-            LocalDateTime start = getNextClosestDateTime(day, user.start.get(i), mc.getStartDay(), user);
-            LocalDateTime end = getNextClosestDateTime(day, user.end.get(i), mc.getStartDay(), user);
+            dbDay.add(DayOfWeek.of(user.days.get(i)));
+            LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(i), mc.getStartDay(), user);
+            LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(i), mc.getStartDay(), user);
             ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
             long startTime = zdtstart.toInstant().toEpochMilli();
 
@@ -228,13 +243,15 @@ public class DatabaseManager {
 
             ranges.add(startTime);
             ranges.add(endTime);
+            dbDay.remove(DayOfWeek.of(user.days.get(i)));
         }
 
         for(int i = 1; i <= 5; i++) {
             if(!day.contains(DayOfWeek.of(i))) {
                 day.add(DayOfWeek.of(i));
-                LocalDateTime start = getNextClosestDateTime(day, 900, mc.getStartDay(), user);
-                LocalDateTime end = getNextClosestDateTime(day, 1700, mc.getStartDay(), user);
+                unusedDay.add(DayOfWeek.of(i));
+                LocalDateTime start = getNextClosestDateTime(unusedDay, 900, mc.getStartDay(), user);
+                LocalDateTime end = getNextClosestDateTime(unusedDay, 1700, mc.getStartDay(), user);
                 ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
                 long startTime = zdtstart.toInstant().toEpochMilli();
 
@@ -243,10 +260,61 @@ public class DatabaseManager {
 
                 ranges.add(startTime);
                 ranges.add(endTime);
+                unusedDay.remove(DayOfWeek.of(i));
             }
         }
+
+        Collections.sort(ranges);
         return ranges;
     }
+
+
+    public static List concreteSubTime(User user, MeetingContraint mc) {
+        List<Long> subranges = new ArrayList<>();
+        List<DayOfWeek> subday = new ArrayList<>();
+        List<DayOfWeek> subunusedDay = new ArrayList<>();
+        List<DayOfWeek> subdbDay = new ArrayList<>();
+
+
+        for (int i = 0; i < user.subdays.size(); i++) {
+            subday.add(DayOfWeek.of(user.subdays.get(i)));
+            subdbDay.add(DayOfWeek.of(user.subdays.get(i)));
+            LocalDateTime start = getNextClosestDateTime(subdbDay, user.substart.get(i), mc.getStartDay(), user);
+            LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(i), mc.getStartDay(), user);
+            ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
+            long startTime = zdtstart.toInstant().toEpochMilli();
+
+            ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.of(user.timezone));
+            long endTime = zdtend.toInstant().toEpochMilli();
+
+            subranges.add(startTime);
+            subranges.add(endTime);
+            subdbDay.remove(DayOfWeek.of(user.subdays.get(i)));
+        }
+
+        for (int i = 1; i <= 5; i++) {
+            if (!subday.contains(DayOfWeek.of(i))) {
+                subday.add(DayOfWeek.of(i));
+                subunusedDay.add(DayOfWeek.of(i));
+                LocalDateTime start = getNextClosestDateTime(subunusedDay, 900, mc.getStartDay(), user);
+                LocalDateTime end = getNextClosestDateTime(subunusedDay, 1700, mc.getStartDay(), user);
+                ZonedDateTime zdtstart = ZonedDateTime.of(start, ZoneId.of(user.timezone));
+                long startTime = zdtstart.toInstant().toEpochMilli();
+
+                ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.of(user.timezone));
+                long endTime = zdtend.toInstant().toEpochMilli();
+
+                subranges.add(startTime);
+                subranges.add(endTime);
+                subunusedDay.remove(DayOfWeek.of(i));
+            }
+        }
+        Collections.sort(subranges);
+        return subranges;
+    }
+
+
+
 
     public static LocalDateTime getNextClosestDateTime(
             List<DayOfWeek> daysOfWeek, int hour, long meetingStartTime, User user)
@@ -266,7 +334,6 @@ public class DatabaseManager {
             mins = Integer.parseInt(hours.substring(1));
         }
 
-        Long c = 1681757851000L;
         final LocalDateTime dateNow = LocalDateTime.ofInstant(Instant.ofEpochMilli(meetingStartTime), ZoneId.of(user.timezone));
         final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(mins).withSecond(0).withNano(0);
 
