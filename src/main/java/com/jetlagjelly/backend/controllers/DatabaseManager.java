@@ -4,6 +4,7 @@ import static com.jetlagjelly.backend.Endpoints.mc;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.jetlagjelly.backend.models.MeetingContraint;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import com.mongodb.client.MongoClient;
@@ -28,15 +29,16 @@ import java.util.Properties;
 
 public class DatabaseManager {
 
+    static Dotenv dotenv = Dotenv.load();
+
+    public static final String MONGODB_USER = dotenv.get("MONGODB_USER");
+    public static final String MONGODB_PASSWORD = dotenv.get("MONGODB_PASSWORD");
+    public static final String MONGODB_DATABASE = dotenv.get("MONGODB_DATABASE");
+    public static final String MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
+    public static final String MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
 
-    public static final String MONGODB_USER = System.getenv("MONGODB_USER");
-    public static final String MONGODB_PASSWORD = System.getenv("MONGODB_PASSWORD");
-    public static final String MONGODB_DATABASE = System.getenv("MONGODB_DATABASE");
-    public static final String MONGODB_LOCAL_PORT = System.getenv("MONGODB_LOCAL_PORT");
-
-    public static final String MONGODB_HOST = System.getenv("MONGODB_HOST");
-    public static MongoClient client = MongoClients.create("mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" + MONGODB_HOST + ":" + MONGODB_LOCAL_PORT );
+    public static MongoClient client = MongoClients.create("mongodb://"+ MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/");
     public static MongoDatabase db = client.getDatabase(MONGODB_DATABASE);
     public static MongoCollection collection = db.getCollection("users");
 
@@ -86,6 +88,12 @@ public class DatabaseManager {
         //collection.insertOne(document);
 
         //System.out.println(concreteTime(user, mc));
+
+        System.out.println(MONGODB_USER);
+        System.out.println(MONGODB_PASSWORD);
+        System.out.println(MONGODB_DATABASE);
+        System.out.println(MONGODB_HOSTNAME);
+        System.out.println(MONGODB_LOCAL_PORT);
 
     }
 
