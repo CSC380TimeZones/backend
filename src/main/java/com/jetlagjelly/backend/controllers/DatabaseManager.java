@@ -1,6 +1,5 @@
 package com.jetlagjelly.backend.controllers;
 
-import static com.jetlagjelly.backend.Endpoints.mc;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.jetlagjelly.backend.models.MeetingContraint;
@@ -13,7 +12,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Projections;
 
-import java.sql.Time;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -25,26 +23,36 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-
-
 public class DatabaseManager {
 
     static Dotenv dotenv = Dotenv.load();
+    public static String MONGODB_USER;
+    public static String MONGODB_PASSWORD;
+    public static String MONGODB_DATABASE;
+    public static String MONGODB_LOCAL_PORT;
+    public static String MONGODB_HOSTNAME;
 
-    public static final String MONGODB_USER = dotenv.get("MONGODB_USER");
-    public static final String MONGODB_PASSWORD = dotenv.get("MONGODB_PASSWORD");
-    public static final String MONGODB_DATABASE = dotenv.get("MONGODB_DATABASE");
-    public static final String MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
-    public static final String MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
+    public static String DB_URL;
+    public static MongoClient client;
+    public static MongoDatabase db;
+    public static MongoCollection collection;
 
+    public DatabaseManager() {
+        MONGODB_USER = dotenv.get("MONGODB_USER");
+        MONGODB_PASSWORD = dotenv.get("MONGODB_PASSWORD");
+        MONGODB_DATABASE = dotenv.get("MONGODB_DATABASE");
+        MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
+        MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
-    public static MongoClient client = MongoClients.create("mongodb://"+ MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/");
-    public static MongoDatabase db = client.getDatabase(MONGODB_DATABASE);
-    public static MongoCollection collection = db.getCollection("users");
+        DB_URL = "mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" + MONGODB_HOSTNAME + ":"
+                + MONGODB_LOCAL_PORT + "/";
 
+        client = MongoClients.create(DB_URL);
+        db = client.getDatabase(MONGODB_DATABASE);
+        collection = db.getCollection("users");
+    }
 
     public static void main(String[] args) {
-
 
         List<String> sca = new ArrayList<>();
         sca.add("create");
@@ -66,35 +74,30 @@ public class DatabaseManager {
         List<Integer> se = new ArrayList<>();
         se.add(800);
 
-        User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3", "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600,sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss, se, sd);
-
+        User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+                "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer", "America/New_York", cida, sta, ena, dya, ss,
+                se, sd);
 
         Document document;
-        //document = newUser(user);
-        //collection.insertOne(document);
+        // document = newUser(user);
+        // collection.insertOne(document);
 
+        // document = fetchUser(collection, "bmclean2@oswego.edu");
+        // System.out.println(document.get("calendar_id"));
 
-        //document = fetchUser(collection, "bmclean2@oswego.edu");
-        //System.out.println(document.get("calendar_id"));
+        // document = meetingMgr(collection, user);
+        // System.out.println(document);
 
-        //document = meetingMgr(collection, user);
-        //System.out.println(document);
+        // deleteUser(collection, user);
 
-        //deleteUser(collection, user);
+        // setTimezone(user, "Europe/Malta");
+        // document = newUser(user);
+        // deleteUser(collection, user);
+        // collection.insertOne(document);
 
-        //setTimezone(user, "Europe/Malta");
-        //document = newUser(user);
-        //deleteUser(collection, user);
-        //collection.insertOne(document);
+        // System.out.println(concreteTime(user, mc));
 
-        //System.out.println(concreteTime(user, mc));
-
-        System.out.println(MONGODB_USER);
-        System.out.println(MONGODB_PASSWORD);
-        System.out.println(MONGODB_DATABASE);
-        System.out.println(MONGODB_HOSTNAME);
-        System.out.println(MONGODB_LOCAL_PORT);
-
+        System.out.println(DB_URL);
     }
 
     public static final class User {
@@ -112,20 +115,44 @@ public class DatabaseManager {
         public List<Integer> substart;
         public List<Integer> subend;
         public List<Integer> subdays;
-        public User(String em, String a, String r, int ex, List<String> sc, String tt, String t, List<String> cid, List<Integer> s, List<Integer> e, List<Integer> d, List<Integer> ss, List<Integer> se, List<Integer> sd) {email = em; access_token = a; refresh_token = r; expires_at = ex; scope = sc; token_type = tt; timezone = t; calendar_id= cid; start = s; end = e; days = d; substart = ss; subend = se; subdays = sd;}
+
+        public User(String em, String a, String r, int ex, List<String> sc, String tt, String t, List<String> cid,
+                List<Integer> s, List<Integer> e, List<Integer> d, List<Integer> ss, List<Integer> se,
+                List<Integer> sd) {
+            email = em;
+            access_token = a;
+            refresh_token = r;
+            expires_at = ex;
+            scope = sc;
+            token_type = tt;
+            timezone = t;
+            calendar_id = cid;
+            start = s;
+            end = e;
+            days = d;
+            substart = ss;
+            subend = se;
+            subdays = sd;
+        }
     }
 
     public static Document newUser(User user) {
         Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
-        Document st = new Document().append("suboptimal_start", user.substart).append("suboptimal_end", user.subend).append("suboptimal_days", user.subdays);
-        Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token).append("refresh_token", user.refresh_token).append("expires_at", user.expires_at).append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone).append("calendar_id", user.calendar_id).append("preferred_timerange", tr).append("suboptimal_timerange", st);
+        Document st = new Document().append("suboptimal_start", user.substart).append("suboptimal_end", user.subend)
+                .append("suboptimal_days", user.subdays);
+        Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token)
+                .append("refresh_token", user.refresh_token).append("expires_at", user.expires_at)
+                .append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone)
+                .append("calendar_id", user.calendar_id).append("preferred_timerange", tr)
+                .append("suboptimal_timerange", st);
         return sampleDoc;
     }
 
     public static Document meetingMgr(MongoCollection collection, User user) {
 
         Bson projectionFields = Projections.fields(
-                Projections.include( "email", "timezone", "calendar_id", "preferred_timerange", "start", "end", "days", "suboptimal_timerange", "suboptimal_start", "suboptimal_end", "suboptimal_days"),
+                Projections.include("email", "timezone", "calendar_id", "preferred_timerange", "start", "end", "days",
+                        "suboptimal_timerange", "suboptimal_start", "suboptimal_end", "suboptimal_days"),
                 Projections.excludeId());
         Document doc = (Document) collection.find(eq("email", user.email)).projection(projectionFields).first();
         return doc;
@@ -135,7 +162,9 @@ public class DatabaseManager {
     public static Document fetchUser(MongoCollection collection, String email) {
 
         Bson projectionFields = Projections.fields(
-                Projections.include("email", "access_token", "refresh_token", "expires_at", "scope", "token_type", "timezone", "calendar_id", "preferred_timerange", "start", "end", "days", "suboptimal_timerange", "suboptimal_start", "suboptimal_end", "suboptimal_days"),
+                Projections.include("email", "access_token", "refresh_token", "expires_at", "scope", "token_type",
+                        "timezone", "calendar_id", "preferred_timerange", "start", "end", "days",
+                        "suboptimal_timerange", "suboptimal_start", "suboptimal_end", "suboptimal_days"),
                 Projections.excludeId());
         Document doc = (Document) collection.find(eq("email", email)).projection(projectionFields).first();
         if (doc == null) {
@@ -151,7 +180,7 @@ public class DatabaseManager {
 
     }
 
-    public static Document tokens(User user){
+    public static Document tokens(User user) {
         Document accessToken = new Document()
                 .append("token", user.access_token)
                 .append("type", user.token_type)
@@ -166,7 +195,8 @@ public class DatabaseManager {
         user.timezone = tz;
     }
 
-    public static void updateTokens(User user, String access_token, int expires_at, String refresh_token, List<String> scope, String token_type) {
+    public static void updateTokens(User user, String access_token, int expires_at, String refresh_token,
+            List<String> scope, String token_type) {
         user.access_token = access_token;
         user.expires_at = expires_at;
         user.refresh_token = refresh_token;
@@ -174,17 +204,19 @@ public class DatabaseManager {
         user.token_type = token_type;
     }
 
-    public static void addCalendar(User user, String id){
+    public static void addCalendar(User user, String id) {
         user.calendar_id.add(id);
     }
 
-    public static void addTimeRange(User user, Integer start, Integer end, Integer day){ //need parameter for day of the week (slot in the list (or rather array[7]?)?)?
+    public static void addTimeRange(User user, Integer start, Integer end, Integer day) { // need parameter for day of
+                                                                                          // the week (slot in the list
+                                                                                          // (or rather array[7]?)?)?
         user.start.add(start);
         user.end.add(end);
         user.days.add(day);
     }
 
-    public static void addSuboptimalTimes(User user, Integer start, Integer end, Integer day){
+    public static void addSuboptimalTimes(User user, Integer start, Integer end, Integer day) {
         user.substart.add(start);
         user.subend.add(end);
         user.subdays.add(day);
@@ -214,8 +246,7 @@ public class DatabaseManager {
             message.setFrom(new InternetAddress(username));
             message.setRecipients(
                     Message.RecipientType.TO,
-                    InternetAddress.parse(recipient)
-            );
+                    InternetAddress.parse(recipient));
             message.setSubject("You Have Been Invited To Join JetLagJelly!");
             message.setText("Click this link to join JLJ today:"
                     + "\n\n https://github.com/CSC380TimeZones/backend"
@@ -231,14 +262,13 @@ public class DatabaseManager {
         }
     }
 
-    public static List concreteTime(User user, MeetingContraint mc) {
+    public static List<Long> concreteTime(User user, MeetingContraint mc) {
         List<Long> ranges = new ArrayList<>();
         List<DayOfWeek> day = new ArrayList<>();
         List<DayOfWeek> unusedDay = new ArrayList<>();
         List<DayOfWeek> dbDay = new ArrayList<>();
 
-
-        for(int i = 0; i < user.days.size(); i++) {
+        for (int i = 0; i < user.days.size(); i++) {
             day.add(DayOfWeek.of(user.days.get(i)));
             dbDay.add(DayOfWeek.of(user.days.get(i)));
             LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(i), mc.getStartDay(), user);
@@ -254,8 +284,8 @@ public class DatabaseManager {
             dbDay.remove(DayOfWeek.of(user.days.get(i)));
         }
 
-        for(int i = 1; i <= 5; i++) {
-            if(!day.contains(DayOfWeek.of(i))) {
+        for (int i = 1; i <= 5; i++) {
+            if (!day.contains(DayOfWeek.of(i))) {
                 day.add(DayOfWeek.of(i));
                 unusedDay.add(DayOfWeek.of(i));
                 LocalDateTime start = getNextClosestDateTime(unusedDay, 900, mc.getStartDay(), user);
@@ -276,13 +306,11 @@ public class DatabaseManager {
         return ranges;
     }
 
-
-    public static List concreteSubTime(User user, MeetingContraint mc) {
+    public static List<Long> concreteSubTime(User user, MeetingContraint mc) {
         List<Long> subranges = new ArrayList<>();
         List<DayOfWeek> subday = new ArrayList<>();
         List<DayOfWeek> subunusedDay = new ArrayList<>();
         List<DayOfWeek> subdbDay = new ArrayList<>();
-
 
         for (int i = 0; i < user.subdays.size(); i++) {
             subday.add(DayOfWeek.of(user.subdays.get(i)));
@@ -321,9 +349,6 @@ public class DatabaseManager {
         return subranges;
     }
 
-
-
-
     public static LocalDateTime getNextClosestDateTime(
             List<DayOfWeek> daysOfWeek, int hour, long meetingStartTime, User user)
             throws IllegalArgumentException {
@@ -342,8 +367,10 @@ public class DatabaseManager {
             mins = Integer.parseInt(hours.substring(1));
         }
 
-        final LocalDateTime dateNow = LocalDateTime.ofInstant(Instant.ofEpochMilli(meetingStartTime), ZoneId.of(user.timezone));
-        final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(mins).withSecond(0).withNano(0);
+        final LocalDateTime dateNow = LocalDateTime.ofInstant(Instant.ofEpochMilli(meetingStartTime),
+                ZoneId.of(user.timezone));
+        final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(mins).withSecond(0)
+                .withNano(0);
 
         return daysOfWeek
                 .stream()
