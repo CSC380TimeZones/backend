@@ -28,9 +28,18 @@ import java.util.Properties;
 
 public class DatabaseManager {
 
-    public static MongoClient client = MongoClients.create("mongodb://localhost:27017/");
-    public static MongoDatabase db = client.getDatabase("JetLagJelly");
+
+
+    public static final String MONGODB_USER = System.getenv("MONGODB_USER");
+    public static final String MONGODB_PASSWORD = System.getenv("MONGODB_PASSWORD");
+    public static final String MONGODB_DATABASE = System.getenv("MONGODB_DATABASE");
+    public static final String MONGODB_LOCAL_PORT = System.getenv("MONGODB_LOCAL_PORT");
+
+    public static final String MONGODB_HOST = System.getenv("MONGODB_HOST");
+    public static MongoClient client = MongoClients.create("mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" + MONGODB_HOST + ":" + MONGODB_LOCAL_PORT );
+    public static MongoDatabase db = client.getDatabase(MONGODB_DATABASE);
     public static MongoCollection collection = db.getCollection("users");
+
 
     public static void main(String[] args) {
 
@@ -76,7 +85,7 @@ public class DatabaseManager {
         //deleteUser(collection, user);
         //collection.insertOne(document);
 
-        System.out.println(concreteTime(user, mc));
+        //System.out.println(concreteTime(user, mc));
 
     }
 
