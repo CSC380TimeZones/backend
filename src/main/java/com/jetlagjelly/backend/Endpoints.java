@@ -141,7 +141,7 @@ public class Endpoints {
         Document query = new Document("email", email);
         Document update = new Document("$pull", new Document("preferred_timerange.start", start)
                 .append("preferred_timerange.end", end)
-                .append("preffered_timerange.days", days));
+                .append("preferred_timerange.days", days));
         collection.updateOne(query, update);
         return ResponseEntity.ok("Time range removed!");
     }
