@@ -16,5 +16,6 @@ WORKDIR /app
 COPY target/backend-0.0.1-SNAPSHOT.jar /app
 COPY .env /app
 COPY src/main/resources /app/src/main
+COPY static /app
 
 ENTRYPOINT ["java","-jar","/app/backend-0.0.1-SNAPSHOT.jar"]
