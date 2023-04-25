@@ -424,8 +424,24 @@ public class DatabaseManager {
                 subunusedDay.remove(DayOfWeek.of(i));
             }
         }
-        Collections.sort(subranges);
-        return subranges;
+
+        ArrayList<Interval> intervals = new ArrayList<>();
+        ArrayList<Long> subblockRanges = new ArrayList<>();
+
+        for ( int i = 0; i < subranges.size(); i = i + 2) {
+            Long a = subranges.get(i);
+            Long b = subranges.get(i + 1);
+            intervals.add(new Interval(a,b));
+        }
+        intervals = merge(intervals);
+
+        for(Interval i : intervals)
+        {
+            subblockRanges.add(i.getStart());
+            subblockRanges.add(i.getEnd());
+        }
+        Collections.sort(subblockRanges);
+        return subblockRanges;
     }
 
     public static LocalDateTime getNextClosestDateTime(
