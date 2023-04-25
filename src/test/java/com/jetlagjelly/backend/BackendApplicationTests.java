@@ -1,5 +1,6 @@
 package com.jetlagjelly.backend;
 
+import com.jetlagjelly.backend.controllers.DatabaseManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -14,7 +15,7 @@ class BackendApplicationTests {
 
 	@Test
 	void contextLoads() throws GeneralSecurityException, IOException {
-		Endpoints.getMeetingConstraints("bmclean2@oswego.edu randomperson@oswego.edu", 120, 1682308800000L, 1682715600000L);
+		Endpoints.getMeetingConstraints("bmclean2@oswego.edu JetLagJellyFan@gmail.com", 120, 1682308800000L, 1682715600000L);
 	}
 
 	@Test
@@ -34,27 +35,52 @@ class BackendApplicationTests {
 		sca.add("create");
 		List<String> cida = new ArrayList<>();
 		cida.add("Phases of the Moon");
-		List<Integer> dya = new ArrayList<>();
-		dya.add(1);
-		dya.add(5);
-		List<Integer> sd = new ArrayList<>();
-		sd.add(2);
-		List<Integer> sta = new ArrayList<>();
-		sta.add(300);
-		sta.add(1200);
-		List<Integer> ena = new ArrayList<>();
-		ena.add(400);
-		ena.add(2000);
-		List<Integer> ss = new ArrayList<>();
-		ss.add(200);
-		List<Integer> se = new ArrayList<>();
-		se.add(800);
+		List<List<Boolean>> dyya = new ArrayList<>();
+		List<Boolean> dya = new ArrayList<>();
+		dya.add(0, true);
+		dya.add(1, false);
+		dya.add(2, false);
+		dya.add(3, false);
+		dya.add(4, false);
+		dya.add(5, false);
+		dya.add(6, false);
+		List<Boolean> dyaa = new ArrayList<>();
+		dyaa.add(0, false);
+		dyaa.add(1, false);
+		dyaa.add(2, false);
+		dyaa.add(3, false);
+		dyaa.add(4, true);
+		dyaa.add(5, false);
+		dyaa.add(6, false);
+		dyya.add(dya);
+		dyya.add(dyaa);
+
+		List<List<Boolean>> sda = new ArrayList<>();
+		List<Boolean> sd = new ArrayList<>();
+		sd.add(0, false);
+		sd.add(1, true);
+		sd.add(2, false);
+		sd.add(3, false);
+		sd.add(4, false);
+		sd.add(5, false);
+		sd.add(6, false);
+		sda.add(sd);
+		List<Double> sta = new ArrayList<>();
+		sta.add(9.50);
+		sta.add(14.00);
+		List<Double> ena = new ArrayList<>();
+		ena.add(13.00);
+		ena.add(18.00);
+		List<Double> ss = new ArrayList<>();
+		ss.add(4.00);
+		List<Double> se = new ArrayList<>();
+		se.add(10.00);
 
 		Endpoints.addNewUser("JetLagJellyFan@gmail.com",
-				"MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
-				"IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer",
-				"America/New_York", cida, sta, ena, dya, ss,
-				se, sd);
+				"MTQ0NjJkZmQ5OTM2NDE1uhefuehfZmZjI3",
+				"IwOGYzYTlmM2YxOTQ5MGEhduwuidhkNTVk", 3200L, sca, "Bearer",
+				"America/New_York", cida, sta, ena, dyya, ss,
+				se, sda);
 	}
 
 }
