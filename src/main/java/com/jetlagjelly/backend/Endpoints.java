@@ -51,19 +51,20 @@ public class Endpoints {
             Document pt = (Document) d.get("preferred_timerange");
             Document st = (Document) d.get("suboptimal_timerange");
             DatabaseManager.User user = new DatabaseManager.User(s, d.getString("access_token"),
-                    d.getString("refresh_token"), d.getInteger("expires_at"), (List<String>) d.get("scope"),
+                    d.getString("refresh_token"), d.getLong("expires_at"), (List<String>) d.get("scope"),
                     d.getString("token_type"), d.getString("timezone"), (List<String>) d.get("calendar_id"),
-                    (List<Integer>) pt.get("start"), (List<Integer>) pt.get("end"), (List<Integer>) pt.get("days"),
-                    (List<Integer>) st.get("suboptimal_start"), (List<Integer>) st.get("suboptimal_end"),
-                    (List<Integer>) st.get("suboptimal_days"));
+                    (List<Double>) pt.get("start"), (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+                    (List<Double>) st.get("suboptimal_start"), (List<Double>) st.get("suboptimal_end"),
+                    (List<List<Boolean>>) st.get("suboptimal_days"));
             a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
             b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
         }
-        // System.out.println(a);
+         System.out.println(a);
         ArrayList<Long> p = mm.intersectMany(a);
         // System.out.println(p);
 
-        System.out.println(events());
+       // System.out.println("Events list    " + events("ya29.a0Ael9sCOxyvQXDCeCYvs52eS13MnXiYHouO_imWwnQYKioVyT2TciADhRzIoRz4SYTi3XnUE0ioq7JBFqyrovUKKCIuSNuB6q-ixspwB0U6ycNZXNZoMTYA03Z6WDK4SAh03L9kvQO3K51DjvBNbGXktv4R1GgJAaCgYKAcASARESFQF4udJhSW9tE-VC6NAixQ_c4Lx8Dg0166",
+       //         "bmclean426@gmail.com"));
         MeetingTimes mt = new MeetingTimes();
         for (int i = 0; i < p.size(); i++) {
             if (i % 2 == 1) {
@@ -72,7 +73,7 @@ public class Endpoints {
                 setStartTimes(p.get(i));
             }
         }
-        System.out.println(b);
+        //System.out.println(b);
 
         ArrayList<Long> l = mm.intersectMany(b);
         for (int i = 0; i < l.size(); i++) {
@@ -155,17 +156,17 @@ public class Endpoints {
             @RequestParam(value = "email") String email,
             @RequestParam(value = "access_token") String access_token,
             @RequestParam(value = "refresh_token") String refresh_token,
-            @RequestParam(value = "expires_at") int expires_at,
+            @RequestParam(value = "expires_at") Long expires_at,
             @RequestParam(value = "scope") List<String> scope,
             @RequestParam(value = "token_type") String token_type,
             @RequestParam(value = "timezone") String timezone,
             @RequestParam(value = "calendar_id") List<String> calendar_id,
-            @RequestParam(value = "preferred_start") List<Integer> preferred_start,
-            @RequestParam(value = "preferred_end") List<Integer> preferred_end,
-            @RequestParam(value = "preferred_day") List<Integer> preferred_day,
-            @RequestParam(value = "suboptimal_start") List<Integer> suboptimal_start,
-            @RequestParam(value = "suboptimal_end") List<Integer> suboptimal_end,
-            @RequestParam(value = "suboptimal_day") List<Integer> suboptimal_day ) {
+            @RequestParam(value = "preferred_start") List<Double> preferred_start,
+            @RequestParam(value = "preferred_end") List<Double> preferred_end,
+            @RequestParam(value = "preferred_day") List<List<Boolean>> preferred_day,
+            @RequestParam(value = "suboptimal_start") List<Double> suboptimal_start,
+            @RequestParam(value = "suboptimal_end") List<Double> suboptimal_end,
+            @RequestParam(value = "suboptimal_day") List<List<Boolean>> suboptimal_day ) {
 
         DatabaseManager.User user = new DatabaseManager.User(email, access_token,
                 refresh_token, expires_at, scope, token_type, timezone, calendar_id, preferred_start,
