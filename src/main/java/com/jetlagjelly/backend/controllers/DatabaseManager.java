@@ -44,7 +44,7 @@ public class DatabaseManager {
         MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
         MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
-        DB_URL = "mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" + MONGODB_HOSTNAME + ":"
+        DB_URL = "mongodb://" + MONGODB_HOSTNAME + ":"
                 + MONGODB_LOCAL_PORT + "/";
 
         client = MongoClients.create(DB_URL);
@@ -74,11 +74,11 @@ public class DatabaseManager {
         List<Integer> se = new ArrayList<>();
         se.add(800);
 
-        // User user = new User("bmclean2@oswego.edu",
-        // "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
-        // "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer",
-        // "America/New_York", cida, sta, ena, dya, ss,
-        // se, sd);
+         User user = new User("bababoo@oswego.edu",
+         "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+         "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600, sca, "Bearer",
+         "America/New_York", cida, sta, ena, dya, ss,
+         se, sd);
 
         // Document document;
         // document = newUser(user);
@@ -99,7 +99,7 @@ public class DatabaseManager {
 
         // System.out.println(concreteTime(user, mc));
 
-        System.out.println(DB_URL);
+        //System.out.println(DB_URL);
     }
 
     public static final class User {
@@ -119,8 +119,8 @@ public class DatabaseManager {
         public List<Integer> subdays;
 
         public User(String em, String a, String r, int ex, List<String> sc, String tt, String t, List<String> cid,
-                List<Integer> s, List<Integer> e, List<Integer> d, List<Integer> ss, List<Integer> se,
-                List<Integer> sd) {
+                    List<Integer> s, List<Integer> e, List<Integer> d, List<Integer> ss, List<Integer> se,
+                    List<Integer> sd) {
             email = em;
             access_token = a;
             refresh_token = r;
@@ -198,7 +198,7 @@ public class DatabaseManager {
     }
 
     public static void updateTokens(User user, String access_token, int expires_at, String refresh_token,
-            List<String> scope, String token_type) {
+                                    List<String> scope, String token_type) {
         user.access_token = access_token;
         user.expires_at = expires_at;
         user.refresh_token = refresh_token;
@@ -211,8 +211,8 @@ public class DatabaseManager {
     }
 
     public static void addTimeRange(User user, Integer start, Integer end, Integer day) { // need parameter for day of
-                                                                                          // the week (slot in the list
-                                                                                          // (or rather array[7]?)?)?
+        // the week (slot in the list
+        // (or rather array[7]?)?)?
         user.start.add(start);
         user.end.add(end);
         user.days.add(day);
@@ -304,8 +304,85 @@ public class DatabaseManager {
             }
         }
 
-        Collections.sort(ranges);
-        return ranges;
+        ArrayList<Interval> intervals = new ArrayList<>();
+        ArrayList<Long> blockRanges = new ArrayList<>();
+
+        for ( int i = 0; i < ranges.size(); i = i + 2) {
+            Long a = ranges.get(i);
+            Long b = ranges.get(i + 1);
+            intervals.add(new Interval(a,b));
+        }
+        intervals = merge(intervals);
+
+        for(Interval i : intervals)
+        {
+            blockRanges.add(i.getStart());
+            blockRanges.add(i.getEnd());
+        }
+
+        Collections.sort(blockRanges);
+        return blockRanges;
+    }
+
+    public static ArrayList<Interval> merge(ArrayList<Interval> intervals) {
+
+        if(intervals.size() == 0 || intervals.size() == 1)
+            return intervals;
+
+        Collections.sort(intervals, new IntervalComparator());
+
+        Interval first = intervals.get(0);
+        Long start = first.getStart();
+        Long end = first.getEnd();
+
+        ArrayList<Interval> result = new ArrayList<Interval>();
+
+        for (int i = 1; i < intervals.size(); i++) {
+            Interval current = intervals.get(i);
+            if (current.getStart() <= end) {
+                end = Math.max(current.getEnd(), end);
+            } else {
+                result.add(new Interval(start, end));
+                start = current.getStart();
+                end = current.getEnd();
+            }
+        }
+
+        result.add(new Interval(start, end));
+        return result;
+    }
+
+    static class Interval
+    {
+        private Long start;
+        private Long end;
+
+        Interval() {
+            start = 0L;
+            end = 0L;
+        }
+
+        Interval(Long s, Long e)
+        {
+            start = s;
+            end = e;
+        }
+
+        public Long getStart() {
+            return start;
+        }
+
+        public Long getEnd() {
+            return end;
+        }
+    }
+
+    static class IntervalComparator implements Comparator<Interval>
+    {
+        public int compare(Interval i1, Interval i2)
+        {
+            return (int) (i1.getStart() -  i2.getStart());
+        }
     }
 
     public static List<Long> concreteSubTime(User user, MeetingContraint mc) {
