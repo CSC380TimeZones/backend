@@ -201,8 +201,8 @@ public class CalendarQuickstart {
         } while (pageToken != null);
 
         //print the name of all the calendars
-        System.out.println(calendarsListHT);
-        //System.out.println(calendarsListHT.values());
+        //System.out.println(calendarsListHT);
+        System.out.println(calendarsListHT.values());
 
         // Retrieve a single user timezone
         Setting setting = service.settings().get("timezone").execute();
