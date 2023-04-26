@@ -123,7 +123,7 @@ public class Endpoints {
         return url.toString();
     }
 
-    @PostMapping("/oauth")
+    @GetMapping("/oauth")
     public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException, GeneralSecurityException {
         HttpTransport httpTransport = new NetHttpTransport();
         GoogleTokenResponse tokenResponse =  new GoogleAuthorizationCodeTokenRequest(
