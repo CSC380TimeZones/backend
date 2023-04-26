@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
@@ -162,14 +163,17 @@ public class CalendarQuickstart {
     }
 
     public static void main(String... args) throws IOException, GeneralSecurityException {
-        String accessToken = "ya29.a0Ael9sCPvg0Mz17Ly0ZODfLXBoAvzcpMESViNuu3vvMznJJ1JCKn_e3yDK0uTobf1XT8HKUnXJe6nEWN7BR2dDk5fvvwE2Hh8jnis1kiGJRWuLXw3EHN4b9Uw-LIhghlJOHcnyc2MZi_NxvC31YOUQNdTzUSzaCgYKARYSARMSFQF4udJhBJpFigMKs4e-p-noc27ZtA0163";
+        String accessToken = "ya29.a0Ael9sCOLafLREphMeAFWD9aDISbPaTtCHqbOWdadQkP1qlDRONLDJPQi5uDNBTy-sy7f6Mq-QeyOtFJT9X3-ENUqIJpxxUTTlLPP8lCXW-IAeCf1B7bdlafVYVhErVr_K7P34oYwLocJkRrdByJcc7fMjrMdaCgYKAT0SARMSFQF4udJh4h7Paod_XjK1FcrjIEo9bw0163";
         DateTime start = new DateTime(System.currentTimeMillis());;
         DateTime end = DateTime.parseRfc3339("2023-05-13T00:00:00.000-04:00");
-        String calendarID = "en.np#holiday@group.v.calendar.google.com";
+        ArrayList<String> calendarID = new ArrayList<String>();
+        calendarID.add("en.np#holiday@group.v.calendar.google.com");
+        calendarID.add("c_pcc74igoo9tcautmfo7vm8pst4@group.calendar.google.com");
+        calendarID.add("c_afa653dae9d504dcd2d794c8b230a56752a33d429b24683dff98d5dbdc417d61@group.calendar.google.com");
         getCalendarData(accessToken, calendarID, start, end);
     }
 
-    public static void getCalendarData(String token, String requiredCalendarID, DateTime startTime, DateTime endTime) throws IOException, GeneralSecurityException {
+    public static void getCalendarData(String token, ArrayList<String> requiredCalendarIDs, DateTime startTime, DateTime endTime) throws IOException, GeneralSecurityException {
         Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(token);
 
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -197,38 +201,40 @@ public class CalendarQuickstart {
         } while (pageToken != null);
 
         //print the name of all the calendars
-        //System.out.println(calendarsListHT);
-        System.out.println(calendarsListHT.values());
+        System.out.println(calendarsListHT);
+        //System.out.println(calendarsListHT.values());
 
         // Retrieve a single user timezone
         Setting setting = service.settings().get("timezone").execute();
         System.out.println(setting.getId() + ": " + setting.getValue());
 
         // iterate through hash table and events for the required calendar ID
-        for (String calendarID : calendarsListHT.keySet()) {
-            if (calendarID.equals(requiredCalendarID)) {
-                System.out.println("\n" + calendarsListHT.get(calendarID));
-                Events events = service.events().list(calendarID)
-                        .setTimeMax(endTime)
-                        .setTimeMin(startTime)
-                        .setOrderBy("startTime")
-                        .setSingleEvents(true)
-                        .execute();
-                List<Event> items = events.getItems();
-                if (items.isEmpty()) {
-                    System.out.println("No upcoming events found.");
-                } else {
-                    System.out.println("Upcoming events");
-                    for (Event event : items) {
-                        DateTime start = event.getStart().getDateTime();
-                        DateTime end = event.getEnd().getDateTime();
-                        if (start == null) {
-                            start = event.getStart().getDate();
+        for (String requiredCalendarID : requiredCalendarIDs) {
+            for (String calendarID : calendarsListHT.keySet()) {
+                if (calendarID.equals(requiredCalendarID)) {
+                    System.out.println("\n" + calendarsListHT.get(calendarID));
+                    Events events = service.events().list(calendarID)
+                            .setTimeMax(endTime)
+                            .setTimeMin(startTime)
+                            .setOrderBy("startTime")
+                            .setSingleEvents(true)
+                            .execute();
+                    List<Event> items = events.getItems();
+                    if (items.isEmpty()) {
+                        System.out.println("No upcoming events found.");
+                    } else {
+                        System.out.println("Upcoming events");
+                        for (Event event : items) {
+                            DateTime start = event.getStart().getDateTime();
+                            DateTime end = event.getEnd().getDateTime();
+                            if (start == null) {
+                                start = event.getStart().getDate();
+                            }
+                            if (end == null) {
+                                end = event.getEnd().getDate();
+                            }
+                            System.out.printf("event: %s, start: (%s), end: (%s)\n", event.getSummary(), start, end);
                         }
-                        if (end == null) {
-                            end = event.getEnd().getDate();
-                        }
-                        System.out.printf("event: %s, start: (%s), end: (%s)\n", event.getSummary(), start, end);
                     }
                 }
             }
