@@ -108,7 +108,7 @@ public class Endpoints {
     @GetMapping("/login")
     public String login()  throws IOException, GeneralSecurityException {
 
-        //this is the only one that doesn't give an error
+        //this is the only one that doesn't give an error f
         HttpTransport httpTransport = new NetHttpTransport();
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport,
