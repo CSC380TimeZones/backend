@@ -16,6 +16,7 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -32,7 +33,7 @@ public class Endpoints {
 
     private String CLIENT_ID = "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
     private String CLIENT_SECRET = "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";
-    private String REDIRECT_URI = "http://localhost/oauth";
+    private String REDIRECT_URI = "http://localhost:8080/oauth";
     public static MeetingContraint mc = new MeetingContraint();
     public static MongoCollection collection = new DatabaseManager().collection;
 
@@ -107,7 +108,7 @@ public class Endpoints {
     }
 
     @GetMapping("/login")
-    public String login()  throws IOException, GeneralSecurityException {
+    public RedirectView login()  throws IOException, GeneralSecurityException {
 
         //this is the only one that doesn't give an error
         HttpTransport httpTransport = new NetHttpTransport();
@@ -120,7 +121,7 @@ public class Endpoints {
 
         GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI);
 
-        return url.toString();
+        return new RedirectView(url.toString());
     }
 
     @GetMapping("/oauth")
@@ -133,6 +134,7 @@ public class Endpoints {
                 CLIENT_SECRET,
                 authorizationCode,
                 REDIRECT_URI).execute();
+
         return tokenResponse.getAccessToken();
     }
 
@@ -169,15 +171,15 @@ public class Endpoints {
             @RequestParam(value = "index") int index,
             @RequestParam(value = "start") int start,
             @RequestParam(value = "end") int end,
-            @RequestParam(value = "days") List<Integer> days) {
+            @RequestParam(value = "days") List<Boolean> days) {
         // update time range for user in db
         String whichRange = type + "_timerange";
-        String whichIndex = whichRange + "." + index;
+        //String whichIndex = whichRange + "." + index;
 
         Document query = new Document("email", email);
-        Document update = new Document("$set", new Document(whichIndex + ".start", start)
-                .append(whichIndex + ".end", end)
-                .append(whichIndex + ".days", days));
+        Document update = new Document("$set", new Document(whichRange + ".start" + "." + index, start)
+                .append(whichRange + ".end" + "." + index, end)
+                .append(whichRange + ".days" + "." + index, days));
         collection.updateOne(query, update);
         return ResponseEntity.ok("Time range updated!");
     }
@@ -189,10 +191,10 @@ public class Endpoints {
             @RequestParam(value = "index") int index) {
         // remove time range for user in db
         String whichRange = type + "_timerange";
-        String whichIndex = whichRange + "." + index;
+        //String whichIndex = whichRange + "." + index;
 
         Document query = new Document("email", email);
-        Document update = new Document("$unset", new Document(whichIndex,null));
+        Document update = new Document("$unset", new Document(whichRange + "." + index, null));
         collection.updateOne(query, update);
 
         update = new Document("$pull", new Document(whichRange, null));
