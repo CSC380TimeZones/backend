@@ -76,11 +76,15 @@ class BackendApplicationTests {
 		List<Double> se = new ArrayList<>();
 		se.add(10.00);
 
-		Endpoints.addNewUser("JetLagJellyFan@gmail.com",
-				"MTQ0NjJkZmQ5OTM2NDE1uhefuehfZmZjI3",
-				"IwOGYzYTlmM2YxOTQ5MGEhduwuidhkNTVk", 3200L, sca, "Bearer",
+		Endpoints.addNewUser("JetLagn@gmail.com",
 				"America/New_York", cida, sta, ena, dyya, ss,
 				se, sda);
+	}
+
+	@Test
+	void currentUser() {
+		System.out.println(Endpoints.currentUser("bmclean2@oswego.edu").calendar_id);
+		System.out.println(Endpoints.currentUser("bmclean2@oswego.edu").days);
 	}
 
 }
