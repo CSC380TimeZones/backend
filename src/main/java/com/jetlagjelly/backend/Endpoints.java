@@ -16,10 +16,17 @@ import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
 import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
+import org.bson.Document;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
+
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.bson.Document;
@@ -126,13 +133,16 @@ public class Endpoints {
   @GetMapping("/login")
   public RedirectView login() throws IOException, GeneralSecurityException {
 
-    HttpTransport httpTransport = new NetHttpTransport();
-    GoogleAuthorizationCodeFlow flow =
-        new GoogleAuthorizationCodeFlow
-            .Builder(httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
-                     Collections.singleton(
-                         "https://www.googleapis.com/auth/calendar"))
-            .build();
+        //this is the only one that doesn't give an error
+        HttpTransport httpTransport = new NetHttpTransport();
+        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+                httpTransport,
+                new GsonFactory(),
+                CLIENT_ID,
+                CLIENT_SECRET,
+                Arrays.asList("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/calendar" ))
+                //Collections.singleton("https://www.googleapis.com/auth/calendar"))
+                .build();
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     GoogleAuthorizationCodeRequestUrl url =
@@ -141,18 +151,20 @@ public class Endpoints {
     return new RedirectView(url.toString());
   }
 
-  @GetMapping("/oauth")
-  public String
-  handleCallback(@RequestParam(value = "code") String authorizationCode)
-      throws IOException, GeneralSecurityException {
-    HttpTransport httpTransport = new NetHttpTransport();
-    GoogleTokenResponse tokenResponse =
-        new GoogleAuthorizationCodeTokenRequest(
-            httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
-            authorizationCode, REDIRECT_URI)
-            .execute();
-    return tokenResponse.getAccessToken();
-  }
+    @GetMapping("/oauth")
+    public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException, GeneralSecurityException {
+        HttpTransport httpTransport = new NetHttpTransport();
+        GoogleTokenResponse tokenResponse =  new GoogleAuthorizationCodeTokenRequest(
+                httpTransport,
+                new GsonFactory(),
+                CLIENT_ID,
+                CLIENT_SECRET,
+                authorizationCode,
+                REDIRECT_URI)
+                .execute();
+
+           return tokenResponse.getAccessToken();
+    }
 
   @PutMapping("/timezone")
   public static ResponseEntity<String>
