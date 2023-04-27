@@ -62,9 +62,13 @@ public class Endpoints {
     Collections.addAll(emailList, emailArray);
     ArrayList<ArrayList<Long>> a = new ArrayList<>();
     ArrayList<ArrayList<Long>> b = new ArrayList<>();
+    ArrayList<String> notFound = new ArrayList<>();
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
+      if (d == null) {
+        notFound.add(s);
+      }
       Document pt = (Document)d.get("preferred_timerange");
       Document st = (Document)d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
@@ -78,6 +82,9 @@ public class Endpoints {
           (List<List<Boolean>>)st.get("suboptimal_days"));
       a.add((ArrayList<Long>)DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>)DatabaseManager.concreteSubTime(user, mc));
+    }
+    if (notFound.size() < 0) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "profile not found for:  " + notFound);
     }
     System.out.println(a);
     ArrayList<Long> p = mm.intersectMany(a);
@@ -243,7 +250,7 @@ public class Endpoints {
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
   public static DatabaseManager.currentUser
   currentUser(@RequestParam(value = "email") String email) {
-    Document d = fetchUser(collection, email);
+    Document d = fetchCurrentUser(collection, email);
 
     if (d == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
