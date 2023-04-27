@@ -165,6 +165,32 @@ public class DatabaseManager {
         }
     }
 
+    public static final class currentUser {
+        public String email;
+        public String timezone;
+        public List<String> calendar_id;
+        public List<Double> start;
+        public List<Double> end;
+        public List<List<Boolean>> days;
+        public List<Double> substart;
+        public List<Double> subend;
+        public List<List<Boolean>> subdays;
+
+        public currentUser(String em, String t, List<String> cid,
+                    List<Double> s, List<Double> e, List<List<Boolean>> d, List<Double> ss, List<Double> se,
+                    List<List<Boolean>> sd) {
+            email = em;
+            timezone = t;
+            calendar_id = cid;
+            start = s;
+            end = e;
+            days = d;
+            substart = ss;
+            subend = se;
+            subdays = sd;
+        }
+    }
+
     public static Document newUser(User user) {
         Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
         Document st = new Document().append("suboptimal_start", user.substart).append("suboptimal_end", user.subend)
@@ -172,6 +198,16 @@ public class DatabaseManager {
         Document sampleDoc = new Document("email", user.email).append("access_token", user.access_token)
                 .append("refresh_token", user.refresh_token).append("expires_at", user.expires_at)
                 .append("scope", user.scope).append("token_type", user.token_type).append("timezone", user.timezone)
+                .append("calendar_id", user.calendar_id).append("preferred_timerange", tr)
+                .append("suboptimal_timerange", st);
+        return sampleDoc;
+    }
+
+    public static Document newcurrentUser(currentUser user) {
+        Document tr = new Document().append("start", user.start).append("end", user.end).append("days", user.days);
+        Document st = new Document().append("suboptimal_start", user.substart).append("suboptimal_end", user.subend)
+                .append("suboptimal_days", user.subdays);
+        Document sampleDoc = new Document("email", user.email).append("timezone", user.timezone)
                 .append("calendar_id", user.calendar_id).append("preferred_timerange", tr)
                 .append("suboptimal_timerange", st);
         return sampleDoc;
