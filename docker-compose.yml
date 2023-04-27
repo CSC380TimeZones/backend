@@ -1,0 +1,23 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    depends_on:
+      - mongodb
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+  mongodb:
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+    image: mongo:4.0.4
+    ports:
+      - ${MONGODB_LOCAL_PORT}:${MONGODB_DOCKER_PORT}
+    restart: unless-stopped
+    volumes:
+      - db:/data/db
+volumes:
+  db:
