@@ -169,7 +169,7 @@ public class Endpoints {
   @PutMapping("/timezone")
   public static ResponseEntity<String>
   setTimezone(@RequestParam(value = "email") String email,
-              @RequestParam(value = "timezone") String timezone) {
+              @RequestParam(value = "timezone") double timezone) {
     // set timezone in db
     Document query = new Document("email", email);
     Document update = new Document("$set", new Document("timezone", timezone));

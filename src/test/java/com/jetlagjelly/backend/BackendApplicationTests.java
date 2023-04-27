@@ -20,7 +20,7 @@ class BackendApplicationTests {
 
 	@Test
 	void setTimezone() {
-		Endpoints.setTimezone("bmclean2@oswego.edu", "America/New_York");
+		Endpoints.setTimezone("bmclean2@oswego.edu", +5);
 	}
 
 	@Test
