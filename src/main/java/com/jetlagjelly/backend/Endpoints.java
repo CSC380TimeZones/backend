@@ -23,8 +23,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.bson.Document;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.view.RedirectView;
 
 @RestController
@@ -159,8 +161,8 @@ public class Endpoints {
   @PostMapping("/timerange")
   public static ResponseEntity<String>
   addTimeRange(@RequestParam(value = "email") String email,
-               @RequestParam(value = "start") int start,
-               @RequestParam(value = "end") int end,
+               @RequestParam(value = "start") double start,
+               @RequestParam(value = "end") double end,
                @RequestParam(value = "days") int days) {
     // add time range for user in db
     Document query = new Document("email", email);
@@ -177,8 +179,8 @@ public class Endpoints {
   updateTimeRange(@RequestParam(value = "email") String email,
                   @RequestParam(value = "type") String type,
                   @RequestParam(value = "index") int index,
-                  @RequestParam(value = "start") int start,
-                  @RequestParam(value = "end") int end,
+                  @RequestParam(value = "start") double start,
+                  @RequestParam(value = "end") double end,
                   @RequestParam(value = "days") List<Boolean> days) {
     // update time range for user in db
     String whichRange = type + "_timerange";
@@ -242,6 +244,11 @@ public class Endpoints {
   public static DatabaseManager.currentUser
   currentUser(@RequestParam(value = "email") String email) {
     Document d = fetchUser(collection, email);
+
+    if (d == null) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+    }
+
     Document pt = (Document)d.get("preferred_timerange");
     Document st = (Document)d.get("suboptimal_timerange");
     DatabaseManager.currentUser user = new DatabaseManager.currentUser(
