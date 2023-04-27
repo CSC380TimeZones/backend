@@ -4,7 +4,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -14,6 +13,7 @@ import com.jetlagjelly.backend.models.MeetingContraint;
 import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.RedirectView;
@@ -21,6 +21,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,7 +118,9 @@ public class Endpoints {
                 new GsonFactory(),
                 CLIENT_ID,
                 CLIENT_SECRET,
-                Collections.singleton("https://www.googleapis.com/auth/calendar")).build();
+                Arrays.asList("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/calendar" ))
+                //Collections.singleton("https://www.googleapis.com/auth/calendar"))
+                .build();
 
         GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI);
 
@@ -133,9 +136,10 @@ public class Endpoints {
                 CLIENT_ID,
                 CLIENT_SECRET,
                 authorizationCode,
-                REDIRECT_URI).execute();
+                REDIRECT_URI)
+                .execute();
 
-        return tokenResponse.getAccessToken();
+           return tokenResponse.getAccessToken();
     }
 
     @PutMapping("/timezone")
