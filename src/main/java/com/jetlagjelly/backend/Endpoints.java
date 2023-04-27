@@ -16,7 +16,6 @@ import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -25,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.jetlagjelly.backend.CalendarQuickstart.events;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.newUser;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.*;
 import static com.jetlagjelly.backend.models.MeetingTimes.*;
 
 @RestController
@@ -33,7 +32,7 @@ public class Endpoints {
 
     private String CLIENT_ID = "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
     private String CLIENT_SECRET = "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";
-    private String REDIRECT_URI = "http://localhost:8080/oauth";
+    private String REDIRECT_URI = "http://localhost/oauth";
     public static MeetingContraint mc = new MeetingContraint();
     public static MongoCollection collection = new DatabaseManager().collection;
 
@@ -59,7 +58,7 @@ public class Endpoints {
         ArrayList<ArrayList<Long>> b = new ArrayList<>();
 
         for (String s : emailList) {
-            Document d = DatabaseManager.fetchUser(collection, s);
+            Document d = fetchUser(collection, s);
             Document pt = (Document) d.get("preferred_timerange");
             Document st = (Document) d.get("suboptimal_timerange");
             DatabaseManager.User user = new DatabaseManager.User(s, d.getString("access_token"),
@@ -71,12 +70,12 @@ public class Endpoints {
             a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
             b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
         }
-         System.out.println(a);
+        System.out.println(a);
         ArrayList<Long> p = mm.intersectMany(a);
         // System.out.println(p);
 
-       // System.out.println("Events list    " + events("ya29.a0Ael9sCOxyvQXDCeCYvs52eS13MnXiYHouO_imWwnQYKioVyT2TciADhRzIoRz4SYTi3XnUE0ioq7JBFqyrovUKKCIuSNuB6q-ixspwB0U6ycNZXNZoMTYA03Z6WDK4SAh03L9kvQO3K51DjvBNbGXktv4R1GgJAaCgYKAcASARESFQF4udJhSW9tE-VC6NAixQ_c4Lx8Dg0166",
-       //         "bmclean426@gmail.com"));
+        // System.out.println("Events list    " + events("ya29.a0Ael9sCOxyvQXDCeCYvs52eS13MnXiYHouO_imWwnQYKioVyT2TciADhRzIoRz4SYTi3XnUE0ioq7JBFqyrovUKKCIuSNuB6q-ixspwB0U6ycNZXNZoMTYA03Z6WDK4SAh03L9kvQO3K51DjvBNbGXktv4R1GgJAaCgYKAcASARESFQF4udJhSW9tE-VC6NAixQ_c4Lx8Dg0166",
+        //         "bmclean426@gmail.com"));
         MeetingTimes mt = new MeetingTimes();
         for (int i = 0; i < p.size(); i++) {
             if (i % 2 == 1) {
@@ -108,7 +107,7 @@ public class Endpoints {
     }
 
     @GetMapping("/login")
-    public RedirectView login()  throws IOException, GeneralSecurityException {
+    public String login() throws IOException, GeneralSecurityException {
 
         //this is the only one that doesn't give an error
         HttpTransport httpTransport = new NetHttpTransport();
@@ -121,10 +120,10 @@ public class Endpoints {
 
         GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI);
 
-        return new RedirectView(url.toString());
+        return url.toString();
     }
 
-    @GetMapping("/oauth")
+    @PostMapping("/oauth")
     public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException, GeneralSecurityException {
         HttpTransport httpTransport = new NetHttpTransport();
         GoogleTokenResponse tokenResponse =  new GoogleAuthorizationCodeTokenRequest(
@@ -134,7 +133,6 @@ public class Endpoints {
                 CLIENT_SECRET,
                 authorizationCode,
                 REDIRECT_URI).execute();
-
         return tokenResponse.getAccessToken();
     }
 
@@ -174,12 +172,12 @@ public class Endpoints {
             @RequestParam(value = "days") List<Boolean> days) {
         // update time range for user in db
         String whichRange = type + "_timerange";
-        //String whichIndex = whichRange + "." + index;
+        String whichIndex = whichRange + "." + index;
 
         Document query = new Document("email", email);
-        Document update = new Document("$set", new Document(whichRange + ".start" + "." + index, start)
-                .append(whichRange + ".end" + "." + index, end)
-                .append(whichRange + ".days" + "." + index, days));
+        Document update = new Document("$set", new Document(whichIndex + ".start", start)
+                .append(whichIndex + ".end", end)
+                .append(whichIndex + ".days", days));
         collection.updateOne(query, update);
         return ResponseEntity.ok("Time range updated!");
     }
@@ -191,10 +189,10 @@ public class Endpoints {
             @RequestParam(value = "index") int index) {
         // remove time range for user in db
         String whichRange = type + "_timerange";
-        //String whichIndex = whichRange + "." + index;
+        String whichIndex = whichRange + "." + index;
 
         Document query = new Document("email", email);
-        Document update = new Document("$unset", new Document(whichRange + "." + index, null));
+        Document update = new Document("$unset", new Document(whichIndex,null));
         collection.updateOne(query, update);
 
         update = new Document("$pull", new Document(whichRange, null));
@@ -206,11 +204,6 @@ public class Endpoints {
     @RequestMapping(method = RequestMethod.GET, value = "/newUser")
     public static void addNewUser(
             @RequestParam(value = "email") String email,
-            @RequestParam(value = "access_token") String access_token,
-            @RequestParam(value = "refresh_token") String refresh_token,
-            @RequestParam(value = "expires_at") Long expires_at,
-            @RequestParam(value = "scope") List<String> scope,
-            @RequestParam(value = "token_type") String token_type,
             @RequestParam(value = "timezone") String timezone,
             @RequestParam(value = "calendar_id") List<String> calendar_id,
             @RequestParam(value = "preferred_start") List<Double> preferred_start,
@@ -220,12 +213,24 @@ public class Endpoints {
             @RequestParam(value = "suboptimal_end") List<Double> suboptimal_end,
             @RequestParam(value = "suboptimal_day") List<List<Boolean>> suboptimal_day ) {
 
-        DatabaseManager.User user = new DatabaseManager.User(email, access_token,
-                refresh_token, expires_at, scope, token_type, timezone, calendar_id, preferred_start,
+        DatabaseManager.currentUser user = new DatabaseManager.currentUser(email, timezone, calendar_id, preferred_start,
                 preferred_end, preferred_day, suboptimal_start, suboptimal_end, suboptimal_day);
 
         Document document;
-        document = newUser(user);
+        document = newcurrentUser(user);
         collection.insertOne(document);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
+    public static DatabaseManager.currentUser currentUser(@RequestParam(value = "email") String email) {
+        Document d = fetchUser(collection, email);
+        Document pt = (Document) d.get("preferred_timerange");
+        Document st = (Document) d.get("suboptimal_timerange");
+        DatabaseManager.currentUser user = new DatabaseManager.currentUser(email, d.getString("timezone"),
+                (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"), (List<Double>) pt.get("end"),
+                (List<List<Boolean>>) pt.get("days"), (List<Double>) st.get("suboptimal_start"),
+                (List<Double>) st.get("suboptimal_end"), (List<List<Boolean>>) st.get("suboptimal_days"));
+
+        return user;
     }
 }
