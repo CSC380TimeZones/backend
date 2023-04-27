@@ -166,7 +166,7 @@ public class CalendarQuickstart {
         String accessToken = "ya29.a0Ael9sCOLafLREphMeAFWD9aDISbPaTtCHqbOWdadQkP1qlDRONLDJPQi5uDNBTy-sy7f6Mq-QeyOtFJT9X3-ENUqIJpxxUTTlLPP8lCXW-IAeCf1B7bdlafVYVhErVr_K7P34oYwLocJkRrdByJcc7fMjrMdaCgYKAT0SARMSFQF4udJh4h7Paod_XjK1FcrjIEo9bw0163";
         DateTime start = new DateTime(System.currentTimeMillis());;
         DateTime end = DateTime.parseRfc3339("2023-05-13T00:00:00.000-04:00");
-        ArrayList<String> calendarID = new ArrayList<String>();
+        ArrayList<String> calendarID = new ArrayList<>();
         calendarID.add("en.np#holiday@group.v.calendar.google.com");
         calendarID.add("c_pcc74igoo9tcautmfo7vm8pst4@group.calendar.google.com");
         calendarID.add("c_afa653dae9d504dcd2d794c8b230a56752a33d429b24683dff98d5dbdc417d61@group.calendar.google.com");
