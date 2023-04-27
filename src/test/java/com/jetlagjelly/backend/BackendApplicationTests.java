@@ -77,7 +77,7 @@ class BackendApplicationTests {
 		se.add(10.00);
 
 		Endpoints.addNewUser("JetLagn@gmail.com",
-				"America/New_York", cida, sta, ena, dyya, ss,
+				-5, cida, sta, ena, dyya, ss,
 				se, sda);
 	}
 

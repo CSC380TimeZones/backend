@@ -81,7 +81,7 @@ public class Endpoints {
       DatabaseManager.User user = new DatabaseManager.User(
           s, d.getString("access_token"), d.getString("refresh_token"),
           d.getLong("expires_at"), (List<String>)d.get("scope"),
-          d.getString("token_type"), d.getString("timezone"),
+          d.getString("token_type"), d.getDouble("timezone"),
           (List<String>)d.get("calendar_id"), (List<Double>)pt.get("start"),
           (List<Double>)pt.get("end"), (List<List<Boolean>>)pt.get("days"),
           (List<Double>)st.get("suboptimal_start"),
@@ -240,7 +240,7 @@ public class Endpoints {
   @RequestMapping(method = RequestMethod.GET, value = "/newUser")
   public static void addNewUser(
       @RequestParam(value = "email") String email,
-      @RequestParam(value = "timezone") String timezone,
+      @RequestParam(value = "timezone") double timezone,
       @RequestParam(value = "calendar_id") List<String> calendar_id,
       @RequestParam(value = "preferred_start") List<Double> preferred_start,
       @RequestParam(value = "preferred_end") List<Double> preferred_end,
@@ -271,7 +271,7 @@ public class Endpoints {
     Document pt = (Document)d.get("preferred_timerange");
     Document st = (Document)d.get("suboptimal_timerange");
     DatabaseManager.currentUser user = new DatabaseManager.currentUser(
-        email, d.getString("timezone"), (List<String>)d.get("calendar_id"),
+        email, d.getDouble("timezone"), (List<String>)d.get("calendar_id"),
         (List<Double>)pt.get("start"), (List<Double>)pt.get("end"),
         (List<List<Boolean>>)pt.get("days"),
         (List<Double>)st.get("suboptimal_start"),
