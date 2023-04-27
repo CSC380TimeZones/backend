@@ -16,6 +16,7 @@ import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
 import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
+import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class Endpoints {
   private String REDIRECT_URI = "http://localhost:8080/oauth";
   public static MeetingContraint mc = new MeetingContraint();
   public static MongoCollection collection = new DatabaseManager().collection;
+  public static Dotenv dotenv = Dotenv.load();
 
   @RequestMapping(method = RequestMethod.GET, value = "/email")
   public static MeetingTimes getMeetingConstraints(
@@ -123,8 +125,9 @@ public class Endpoints {
                          "https://www.googleapis.com/auth/calendar"))
             .build();
 
+    String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     GoogleAuthorizationCodeRequestUrl url =
-        flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URI);
+        flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URL);
 
     return new RedirectView(url.toString());
   }
