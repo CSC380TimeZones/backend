@@ -316,7 +316,7 @@ public class Endpoints {
     if (used) {
       update = new Document("$push", new Document("calendar_id", calendar_id));
     } else {
-      return;
+      update = new Document("$pull", new Document("calendar_id", calendar_id));
     }
     collection.updateOne(query, update);
   }
