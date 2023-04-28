@@ -4,13 +4,26 @@ import static com.jetlagjelly.backend.CalendarQuickstart.events;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.*;
 import static com.jetlagjelly.backend.models.MeetingTimes.*;
 
+import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.googleapis.auth.oauth2.OAuth2Utils;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.OAuth2Credentials;
+import com.google.auth.oauth2.OAuth2Credentials.Builder;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
@@ -69,19 +82,15 @@ public class Endpoints {
     Collections.addAll(emailList, emailArray);
     ArrayList<ArrayList<Long>> a = new ArrayList<>();
     ArrayList<ArrayList<Long>> b = new ArrayList<>();
-    ArrayList<String> notFound = new ArrayList<>();
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
-      if (d == null) {
-        notFound.add(s);
-      }
       Document pt = (Document)d.get("preferred_timerange");
       Document st = (Document)d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
           s, d.getString("access_token"), d.getString("refresh_token"),
           d.getLong("expires_at"), (List<String>)d.get("scope"),
-          d.getString("token_type"), d.getDouble("timezone"),
+          d.getString("token_type"), d.getString("timezone"),
           (List<String>)d.get("calendar_id"), (List<Double>)pt.get("start"),
           (List<Double>)pt.get("end"), (List<List<Boolean>>)pt.get("days"),
           (List<Double>)st.get("suboptimal_start"),
@@ -89,9 +98,6 @@ public class Endpoints {
           (List<List<Boolean>>)st.get("suboptimal_days"));
       a.add((ArrayList<Long>)DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>)DatabaseManager.concreteSubTime(user, mc));
-    }
-    if (notFound.size() < 0) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "profile not found for:  " + notFound);
     }
     System.out.println(a);
     ArrayList<Long> p = mm.intersectMany(a);
@@ -163,13 +169,35 @@ public class Endpoints {
                 REDIRECT_URI)
                 .execute();
 
-           return tokenResponse.getAccessToken();
+                GoogleCredential credential = new GoogleCredential.Builder()
+                .setTransport(httpTransport)
+                .setJsonFactory(new GsonFactory())
+                .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
+                .build();
+                
+                credential.setAccessToken(tokenResponse.getAccessToken());
+
+                HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
+    GenericUrl url = new GenericUrl("https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" + credential.getAccessToken());
+    HttpRequest request = requestFactory.buildGetRequest(url);
+    HttpResponse response = request.execute();
+
+    Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
+
+    JsonObject jsonResponse = new JsonObject();
+    jsonResponse.addProperty("access_token", tokenResponse.getAccessToken());
+    jsonResponse.addProperty("email", payload.getEmail());
+
+    return jsonResponse.toString();
+
+            //return payload.getEmail();
+           //return tokenResponse.getAccessToken();
     }
 
   @PutMapping("/timezone")
   public static ResponseEntity<String>
   setTimezone(@RequestParam(value = "email") String email,
-              @RequestParam(value = "timezone") double timezone) {
+              @RequestParam(value = "timezone") String timezone) {
     // set timezone in db
     Document query = new Document("email", email);
     Document update = new Document("$set", new Document("timezone", timezone));
@@ -240,7 +268,7 @@ public class Endpoints {
   @RequestMapping(method = RequestMethod.GET, value = "/newUser")
   public static void addNewUser(
       @RequestParam(value = "email") String email,
-      @RequestParam(value = "timezone") double timezone,
+      @RequestParam(value = "timezone") String timezone,
       @RequestParam(value = "calendar_id") List<String> calendar_id,
       @RequestParam(value = "preferred_start") List<Double> preferred_start,
       @RequestParam(value = "preferred_end") List<Double> preferred_end,
@@ -262,7 +290,7 @@ public class Endpoints {
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
   public static DatabaseManager.currentUser
   currentUser(@RequestParam(value = "email") String email) {
-    Document d = fetchCurrentUser(collection, email);
+    Document d = fetchUser(collection, email);
 
     if (d == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -271,7 +299,7 @@ public class Endpoints {
     Document pt = (Document)d.get("preferred_timerange");
     Document st = (Document)d.get("suboptimal_timerange");
     DatabaseManager.currentUser user = new DatabaseManager.currentUser(
-        email, d.getDouble("timezone"), (List<String>)d.get("calendar_id"),
+        email, d.getString("timezone"), (List<String>)d.get("calendar_id"),
         (List<Double>)pt.get("start"), (List<Double>)pt.get("end"),
         (List<List<Boolean>>)pt.get("days"),
         (List<Double>)st.get("suboptimal_start"),
