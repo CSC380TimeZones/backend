@@ -152,7 +152,7 @@ public class Endpoints {
 
   @GetMapping("/oauth")
   public String
-  handleCallback(@RequestParam(value = "code") String authorizationCode)
+  handleCallback(@RequestParam(value = "code") String authorizationCode, @RequestParam(value = "email") String email)
       throws IOException, GeneralSecurityException {
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     HttpTransport httpTransport = new NetHttpTransport();
@@ -181,12 +181,30 @@ public class Endpoints {
 
     Payload payload =
         new Gson().fromJson(response.parseAsString(), Payload.class);
-
+       
     JsonObject jsonResponse = new JsonObject();
     jsonResponse.addProperty("access_token", tokenResponse.getAccessToken());
     jsonResponse.addProperty("email", payload.getEmail());
 
+    Document newUser = new Document("email", email)
+    .append("access_token", tokenResponse.getAccessToken())
+    .append("refresh_token", tokenResponse.getRefreshToken())
+    .append("expires_at", tokenResponse.getExpiresInSeconds())
+    .append("scope", Arrays.asList(" "))
+    .append("token_type", tokenResponse.getTokenType())
+    .append("timezone", "")
+    .append("calendars", Arrays.asList(" "))
+    .append("timerange", new Document("start", " ").append( "end", " "));
+
+
+    collection.insertOne(newUser);
+
     return jsonResponse.toString();
+
+    //make an account with the email, add it to the db 
+    //try to make email and access token a string to just pass into the mongo db
+    //make a new mongo db user once they are authenticated.
+    //create a new user in db with  id email access token and stuff, default values
 
     // return payload.getEmail();
     // return tokenResponse.getAccessToken();
