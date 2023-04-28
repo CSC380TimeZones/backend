@@ -7,21 +7,23 @@ import static com.jetlagjelly.backend.models.MeetingTimes.*;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.http.GenericUrl;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
 import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
-import org.bson.Document;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -42,7 +44,6 @@ public class Endpoints {
   private String CLIENT_ID =
       "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
   private String CLIENT_SECRET = "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";
-  private String REDIRECT_URI = "http://localhost:8080/oauth";
   public static MeetingContraint mc = new MeetingContraint();
   public static MongoCollection collection = new DatabaseManager().collection;
   public static Dotenv dotenv = Dotenv.load();
@@ -69,19 +70,16 @@ public class Endpoints {
     Collections.addAll(emailList, emailArray);
     ArrayList<ArrayList<Long>> a = new ArrayList<>();
     ArrayList<ArrayList<Long>> b = new ArrayList<>();
-    ArrayList<String> notFound = new ArrayList<>();
+    ArrayList<DatabaseManager.User> notFound = new ArrayList<>();
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
-      if (d == null) {
-        notFound.add(s);
-      }
       Document pt = (Document)d.get("preferred_timerange");
       Document st = (Document)d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
           s, d.getString("access_token"), d.getString("refresh_token"),
           d.getLong("expires_at"), (List<String>)d.get("scope"),
-          d.getString("token_type"), d.getString("timezone"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
           (List<String>)d.get("calendar_id"), (List<Double>)pt.get("start"),
           (List<Double>)pt.get("end"), (List<List<Boolean>>)pt.get("days"),
           (List<Double>)st.get("suboptimal_start"),
@@ -91,7 +89,8 @@ public class Endpoints {
       b.add((ArrayList<Long>)DatabaseManager.concreteSubTime(user, mc));
     }
     if (notFound.size() < 0) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "profile not found for:  " + notFound);
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                        "profile not found for:  " + notFound);
     }
     System.out.println(a);
     ArrayList<Long> p = mm.intersectMany(a);
@@ -133,16 +132,16 @@ public class Endpoints {
   @GetMapping("/login")
   public RedirectView login() throws IOException, GeneralSecurityException {
 
-        //this is the only one that doesn't give an error
-        HttpTransport httpTransport = new NetHttpTransport();
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                httpTransport,
-                new GsonFactory(),
-                CLIENT_ID,
-                CLIENT_SECRET,
-                Arrays.asList("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/calendar" ))
-                //Collections.singleton("https://www.googleapis.com/auth/calendar"))
-                .build();
+    // this is the only one that doesn't give an error
+    HttpTransport httpTransport = new NetHttpTransport();
+    GoogleAuthorizationCodeFlow flow =
+        new GoogleAuthorizationCodeFlow
+            .Builder(
+                httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
+                Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
+                              "https://www.googleapis.com/auth/calendar"))
+            // Collections.singleton("https://www.googleapis.com/auth/calendar"))
+            .build();
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     GoogleAuthorizationCodeRequestUrl url =
@@ -151,20 +150,47 @@ public class Endpoints {
     return new RedirectView(url.toString());
   }
 
-    @GetMapping("/oauth")
-    public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException, GeneralSecurityException {
-        HttpTransport httpTransport = new NetHttpTransport();
-        GoogleTokenResponse tokenResponse =  new GoogleAuthorizationCodeTokenRequest(
-                httpTransport,
-                new GsonFactory(),
-                CLIENT_ID,
-                CLIENT_SECRET,
-                authorizationCode,
-                REDIRECT_URI)
-                .execute();
+  @GetMapping("/oauth")
+  public String
+  handleCallback(@RequestParam(value = "code") String authorizationCode)
+      throws IOException, GeneralSecurityException {
+    String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
+    HttpTransport httpTransport = new NetHttpTransport();
+    GoogleTokenResponse tokenResponse =
+        new GoogleAuthorizationCodeTokenRequest(
+            httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
+            authorizationCode, REDIRECT_URL)
+            .execute();
 
-           return tokenResponse.getAccessToken();
-    }
+    GoogleCredential credential =
+        new GoogleCredential.Builder()
+            .setTransport(httpTransport)
+            .setJsonFactory(new GsonFactory())
+            .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
+            .build();
+
+    credential.setAccessToken(tokenResponse.getAccessToken());
+
+    HttpRequestFactory requestFactory =
+        httpTransport.createRequestFactory(credential);
+    GenericUrl url = new GenericUrl(
+        "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" +
+        credential.getAccessToken());
+    HttpRequest request = requestFactory.buildGetRequest(url);
+    HttpResponse response = request.execute();
+
+    Payload payload =
+        new Gson().fromJson(response.parseAsString(), Payload.class);
+
+    JsonObject jsonResponse = new JsonObject();
+    jsonResponse.addProperty("access_token", tokenResponse.getAccessToken());
+    jsonResponse.addProperty("email", payload.getEmail());
+
+    return jsonResponse.toString();
+
+    // return payload.getEmail();
+    // return tokenResponse.getAccessToken();
+  }
 
   @PutMapping("/timezone")
   public static ResponseEntity<String>
@@ -240,7 +266,7 @@ public class Endpoints {
   @RequestMapping(method = RequestMethod.GET, value = "/newUser")
   public static void addNewUser(
       @RequestParam(value = "email") String email,
-      @RequestParam(value = "timezone") String timezone,
+      @RequestParam(value = "timezone") double timezone,
       @RequestParam(value = "calendar_id") List<String> calendar_id,
       @RequestParam(value = "preferred_start") List<Double> preferred_start,
       @RequestParam(value = "preferred_end") List<Double> preferred_end,
@@ -262,7 +288,7 @@ public class Endpoints {
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
   public static DatabaseManager.currentUser
   currentUser(@RequestParam(value = "email") String email) {
-    Document d = fetchCurrentUser(collection, email);
+    Document d = fetchUser(collection, email);
 
     if (d == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -271,9 +297,9 @@ public class Endpoints {
     Document pt = (Document)d.get("preferred_timerange");
     Document st = (Document)d.get("suboptimal_timerange");
     DatabaseManager.currentUser user = new DatabaseManager.currentUser(
-        email, d.getString("timezone"), (List<String>)d.get("calendar_id"),
-        (List<Double>)pt.get("start"), (List<Double>)pt.get("end"),
-        (List<List<Boolean>>)pt.get("days"),
+        email, Double.valueOf(d.getString("timezone")),
+        (List<String>)d.get("calendar_id"), (List<Double>)pt.get("start"),
+        (List<Double>)pt.get("end"), (List<List<Boolean>>)pt.get("days"),
         (List<Double>)st.get("suboptimal_start"),
         (List<Double>)st.get("suboptimal_end"),
         (List<List<Boolean>>)st.get("suboptimal_days"));

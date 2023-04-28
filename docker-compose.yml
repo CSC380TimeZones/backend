@@ -6,7 +6,7 @@ services:
     depends_on:
       - mongodb
     ports:
-      - 8080:8080
+      - 43117:8080
     restart: unless-stopped
   mongodb:
     environment:
