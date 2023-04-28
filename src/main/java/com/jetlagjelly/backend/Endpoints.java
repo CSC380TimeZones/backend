@@ -306,4 +306,16 @@ public class Endpoints {
 
     return user;
   }
+
+  @PutMapping("/calendar")
+  public static void calendar(@RequestParam(value = "email") String email,
+                              @RequestParam(value = "calendar_id") String calendar_id,
+                              @RequestParam(value = "used") Boolean used) {
+    Document query = new Document("email", email);
+    Document update = new Document();
+    if (used == true) {
+      update = new Document("$push", new Document("calendar_id", calendar_id));
+    }
+    collection.updateOne(query, update);
+  }
 }
