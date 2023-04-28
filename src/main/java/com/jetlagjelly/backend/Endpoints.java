@@ -313,8 +313,10 @@ public class Endpoints {
                               @RequestParam(value = "used") Boolean used) {
     Document query = new Document("email", email);
     Document update = new Document();
-    if (used == true) {
+    if (used) {
       update = new Document("$push", new Document("calendar_id", calendar_id));
+    } else {
+      return;
     }
     collection.updateOne(query, update);
   }
