@@ -29,12 +29,6 @@ import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
 import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
-import org.bson.Document;
-
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.view.RedirectView;
-
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -55,7 +49,6 @@ public class Endpoints {
   private String CLIENT_ID =
       "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
   private String CLIENT_SECRET = "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";
-  private String REDIRECT_URI = "http://localhost:8080/oauth";
   public static MeetingContraint mc = new MeetingContraint();
   public static MongoCollection collection = new DatabaseManager().collection;
   public static Dotenv dotenv = Dotenv.load();
@@ -99,6 +92,13 @@ public class Endpoints {
       a.add((ArrayList<Long>)DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>)DatabaseManager.concreteSubTime(user, mc));
     }
+<<<<<<< HEAD
+=======
+    if (notFound.size() < 0) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                        "profile not found for:  " + notFound);
+    }
+>>>>>>> 528e09e6ada47836dfc1959e2e58ddb69788ea7b
     System.out.println(a);
     ArrayList<Long> p = mm.intersectMany(a);
     // System.out.println(p);
@@ -139,16 +139,16 @@ public class Endpoints {
   @GetMapping("/login")
   public RedirectView login() throws IOException, GeneralSecurityException {
 
-        //this is the only one that doesn't give an error
-        HttpTransport httpTransport = new NetHttpTransport();
-        GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-                httpTransport,
-                new GsonFactory(),
-                CLIENT_ID,
-                CLIENT_SECRET,
-                Arrays.asList("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/calendar" ))
-                //Collections.singleton("https://www.googleapis.com/auth/calendar"))
-                .build();
+    // this is the only one that doesn't give an error
+    HttpTransport httpTransport = new NetHttpTransport();
+    GoogleAuthorizationCodeFlow flow =
+        new GoogleAuthorizationCodeFlow
+            .Builder(
+                httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
+                Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
+                              "https://www.googleapis.com/auth/calendar"))
+            // Collections.singleton("https://www.googleapis.com/auth/calendar"))
+            .build();
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     GoogleAuthorizationCodeRequestUrl url =
@@ -157,18 +157,19 @@ public class Endpoints {
     return new RedirectView(url.toString());
   }
 
-    @GetMapping("/oauth")
-    public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException, GeneralSecurityException {
-        HttpTransport httpTransport = new NetHttpTransport();
-        GoogleTokenResponse tokenResponse =  new GoogleAuthorizationCodeTokenRequest(
-                httpTransport,
-                new GsonFactory(),
-                CLIENT_ID,
-                CLIENT_SECRET,
-                authorizationCode,
-                REDIRECT_URI)
-                .execute();
+  @GetMapping("/oauth")
+  public String
+  handleCallback(@RequestParam(value = "code") String authorizationCode)
+      throws IOException, GeneralSecurityException {
+    String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
+    HttpTransport httpTransport = new NetHttpTransport();
+    GoogleTokenResponse tokenResponse =
+        new GoogleAuthorizationCodeTokenRequest(
+            httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
+            authorizationCode, REDIRECT_URL)
+            .execute();
 
+<<<<<<< HEAD
                 GoogleCredential credential = new GoogleCredential.Builder()
                 .setTransport(httpTransport)
                 .setJsonFactory(new GsonFactory())
@@ -193,6 +194,10 @@ public class Endpoints {
             //return payload.getEmail();
            //return tokenResponse.getAccessToken();
     }
+=======
+    //return tokenResponse.getAccessToken();
+  }
+>>>>>>> 528e09e6ada47836dfc1959e2e58ddb69788ea7b
 
   @PutMapping("/timezone")
   public static ResponseEntity<String>
