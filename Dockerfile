@@ -13,9 +13,6 @@ FROM amazoncorretto:17
 # Otherwise, use these lines
 
 WORKDIR /app
-COPY target/backend-0.0.1-SNAPSHOT.jar /app
-COPY .env /app
-COPY src/main/resources /app/src/main
-COPY static /app
+COPY . /app
 
-ENTRYPOINT ["java","-jar","/app/backend-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java","-jar","/app/target/backend-0.0.1-SNAPSHOT.jar"]
