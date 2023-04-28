@@ -45,7 +45,7 @@ public class DatabaseManager {
     MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
     MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
-    DB_URL = "mongodb://" +
+    DB_URL = "mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" +
              MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/";
 
     client = MongoClients.create(DB_URL);
@@ -102,12 +102,12 @@ public class DatabaseManager {
 
     User user =
         new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
-                 "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer",
-                 -5, cida, sta, ena, dyya, ss, se, sda);
+                 "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer", -5,
+                 cida, sta, ena, dyya, ss, se, sda);
 
-    //Document document;
-    //document = newUser(user);
-    //collection.insertOne(document);
+    // Document document;
+    // document = newUser(user);
+    // collection.insertOne(document);
 
     // document = fetchUser(collection, "bmclean2@oswego.edu");
     // System.out.println(document.get("calendar_id"));
@@ -261,21 +261,21 @@ public class DatabaseManager {
     return doc;
   }
 
-    public static Document fetchCurrentUser(MongoCollection collection, String email) {
-        Bson projectionFields = Projections.fields(
-                Projections.include(
-                        "email", "timezone", "calendar_id", "preferred_timerange",
-                        "start", "end", "days", "suboptimal_timerange", "suboptimal_start",
-                        "suboptimal_end", "suboptimal_days"),
-                Projections.excludeId());
-        Document doc = (Document)collection.find(eq("email", email))
-                .projection(projectionFields)
-                .first();
-        return doc;
-    }
+  public static Document fetchCurrentUser(MongoCollection collection,
+                                          String email) {
+    Bson projectionFields = Projections.fields(
+        Projections.include("email", "timezone", "calendar_id",
+                            "preferred_timerange", "start", "end", "days",
+                            "suboptimal_timerange", "suboptimal_start",
+                            "suboptimal_end", "suboptimal_days"),
+        Projections.excludeId());
+    Document doc = (Document)collection.find(eq("email", email))
+                       .projection(projectionFields)
+                       .first();
+    return doc;
+  }
 
-
-    public static void deleteUser(MongoCollection collection, User user) {
+  public static void deleteUser(MongoCollection collection, User user) {
 
     Bson query = eq("email", user.email);
     collection.deleteOne(query);
@@ -389,11 +389,14 @@ public class DatabaseManager {
                                                      mc.getStartDay(), user);
         LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(i),
                                                    mc.getStartDay(), user);
-        ZonedDateTime zdtstart =
-            ZonedDateTime.of(start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtstart = ZonedDateTime.of(
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                              (int)(user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
-        ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtend = ZonedDateTime.of(
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                            (int)(user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -410,11 +413,14 @@ public class DatabaseManager {
             getNextClosestDateTime(unusedDay, 9.00, mc.getStartDay(), user);
         LocalDateTime end =
             getNextClosestDateTime(unusedDay, 17.00, mc.getStartDay(), user);
-        ZonedDateTime zdtstart =
-            ZonedDateTime.of(start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtstart = ZonedDateTime.of(
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                              (int)(user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
-        ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtend = ZonedDateTime.of(
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                            (int)(user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -511,11 +517,14 @@ public class DatabaseManager {
             subdbDay, user.substart.get(i), mc.getStartDay(), user);
         LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(i),
                                                    mc.getStartDay(), user);
-        ZonedDateTime zdtstart =
-            ZonedDateTime.of(start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtstart = ZonedDateTime.of(
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                              (int)(user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
-        ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtend = ZonedDateTime.of(
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                            (int)(user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
@@ -532,11 +541,14 @@ public class DatabaseManager {
             getNextClosestDateTime(subunusedDay, 9.00, mc.getStartDay(), user);
         LocalDateTime end =
             getNextClosestDateTime(subunusedDay, 17.00, mc.getStartDay(), user);
-        ZonedDateTime zdtstart =
-            ZonedDateTime.of(start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtstart = ZonedDateTime.of(
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                              (int)(user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
-        ZonedDateTime zdtend = ZonedDateTime.of(end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        ZonedDateTime zdtend = ZonedDateTime.of(
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
+                                            (int)(user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
@@ -578,7 +590,9 @@ public class DatabaseManager {
     int minutes = (int)(mins * 60);
 
     final LocalDateTime dateNow = LocalDateTime.ofInstant(
-        Instant.ofEpochMilli(meetingStartTime), ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+        Instant.ofEpochMilli(meetingStartTime),
+        ZoneId.ofOffset("UTC",
+                        ZoneOffset.ofTotalSeconds((int)(user.timezone * 360))));
     final LocalDateTime dateNowWithDifferentTime =
         dateNow.withHour(timeHours).withMinute(minutes).withSecond(0).withNano(
             0);
