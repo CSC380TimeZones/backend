@@ -16,8 +16,11 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.Json;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
@@ -32,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.bson.Document;
+import org.json.simple.JSONArray;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,8 +45,7 @@ import org.springframework.web.servlet.view.RedirectView;
 @RestController
 public class Endpoints {
 
-  private String CLIENT_ID =
-      "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
+  private String CLIENT_ID = "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
   private String CLIENT_SECRET = "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";
   public static MeetingContraint mc = new MeetingContraint();
   public static MongoCollection collection = new DatabaseManager().collection;
@@ -50,11 +53,9 @@ public class Endpoints {
 
   @RequestMapping(method = RequestMethod.GET, value = "/email")
   public static MeetingTimes getMeetingConstraints(
-      @RequestParam(value = "email",
-                    defaultValue = "No email found!") String email,
+      @RequestParam(value = "email", defaultValue = "No email found!") String email,
       @RequestParam(value = "mtngLength", defaultValue = "60") int mtngLength,
-      @RequestParam(value = "startDay",
-                    defaultValue = "100000000000") Long startDay,
+      @RequestParam(value = "startDay", defaultValue = "100000000000") Long startDay,
       @RequestParam(value = "endDay", defaultValue = "1000000000") Long endDay)
       throws GeneralSecurityException, IOException {
 
@@ -74,37 +75,37 @@ public class Endpoints {
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
-      Document pt = (Document)d.get("preferred_timerange");
-      Document st = (Document)d.get("suboptimal_timerange");
+      Document pt = (Document) d.get("preferred_timerange");
+      Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
           s, d.getString("access_token"), d.getString("refresh_token"),
-          d.getLong("expires_at"), (List<String>)d.get("scope"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
           d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-          (List<String>)d.get("calendar_id"), (List<Double>)pt.get("start"),
-          (List<Double>)pt.get("end"), (List<List<Boolean>>)pt.get("days"),
-          (List<Double>)st.get("suboptimal_start"),
-          (List<Double>)st.get("suboptimal_end"),
-          (List<List<Boolean>>)st.get("suboptimal_days"));
-      a.add((ArrayList<Long>)DatabaseManager.concreteTime(user, mc));
-      b.add((ArrayList<Long>)DatabaseManager.concreteSubTime(user, mc));
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
+      a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
+      b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
     }
     if (notFound.size() < 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                        "profile not found for:  " + notFound);
+          "profile not found for:  " + notFound);
     }
     System.out.println(a);
     ArrayList<Long> p = mm.intersectMany(a);
     // System.out.println(p);
 
-    // System.out.println("Events list    " +
+    // System.out.println("Events list " +
     // events("ya29.a0Ael9sCOxyvQXDCeCYvs52eS13MnXiYHouO_imWwnQYKioVyT2TciADhRzIoRz4SYTi3XnUE0ioq7JBFqyrovUKKCIuSNuB6q-ixspwB0U6ycNZXNZoMTYA03Z6WDK4SAh03L9kvQO3K51DjvBNbGXktv4R1GgJAaCgYKAcASARESFQF4udJhSW9tE-VC6NAixQ_c4Lx8Dg0166",
-    //         "bmclean426@gmail.com"));
+    // "bmclean426@gmail.com"));
     MeetingTimes mt = new MeetingTimes();
     for (int i = 0; i < p.size(); i++) {
       if (i % 2 == 1) {
-        setEndTimes(p.get(i));
+        mt.setEndTimes(p.get(i));
       } else if (i % 2 == 0) {
-        setStartTimes(p.get(i));
+        mt.setStartTimes(p.get(i));
       }
     }
     // System.out.println(b);
@@ -112,16 +113,14 @@ public class Endpoints {
     ArrayList<Long> l = mm.intersectMany(b);
     for (int i = 0; i < l.size(); i++) {
       if (i % 2 == 1) {
-        setSubEndTimes(l.get(i));
+        mt.setSubEndTimes(l.get(i));
       } else if (i % 2 == 0) {
-        setSubStartTimes(l.get(i));
+        mt.setSubStartTimes(l.get(i));
       }
     }
 
     System.out.println("startTimes:  " + mt.startTimes);
     System.out.println("endTimes:  " + mt.endTimes);
-
-    System.out.println("sub-times");
 
     System.out.println("substartTimes:  " + mt.subStartTimes);
     System.out.println("subendTimes:  " + mt.subEndTimes);
@@ -134,86 +133,94 @@ public class Endpoints {
 
     // this is the only one that doesn't give an error
     HttpTransport httpTransport = new NetHttpTransport();
-    GoogleAuthorizationCodeFlow flow =
-        new GoogleAuthorizationCodeFlow
-            .Builder(
-                httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
-                Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
-                              "https://www.googleapis.com/auth/calendar"))
-            // Collections.singleton("https://www.googleapis.com/auth/calendar"))
-            .build();
+    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+        httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
+        Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
+            "https://www.googleapis.com/auth/calendar"))
+        // Collections.singleton("https://www.googleapis.com/auth/calendar"))
+        .build();
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
-    GoogleAuthorizationCodeRequestUrl url =
-        flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URL);
+    GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URL);
 
     return new RedirectView(url.toString());
   }
 
   @GetMapping("/oauth")
-  public String
-  handleCallback(@RequestParam(value = "code") String authorizationCode, @RequestParam(value = "email") String email)
+  public String handleCallback(@RequestParam(value = "code") String authorizationCode)
       throws IOException, GeneralSecurityException {
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     HttpTransport httpTransport = new NetHttpTransport();
-    GoogleTokenResponse tokenResponse =
-        new GoogleAuthorizationCodeTokenRequest(
-            httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
-            authorizationCode, REDIRECT_URL)
-            .execute();
+    GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
+        httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
+        authorizationCode, REDIRECT_URL)
+        .execute();
 
-    GoogleCredential credential =
-        new GoogleCredential.Builder()
-            .setTransport(httpTransport)
-            .setJsonFactory(new GsonFactory())
-            .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
-            .build();
+    GoogleCredential credential = new GoogleCredential.Builder()
+        .setTransport(httpTransport)
+        .setJsonFactory(new GsonFactory())
+        .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
+        .build();
 
     credential.setAccessToken(tokenResponse.getAccessToken());
 
-    HttpRequestFactory requestFactory =
-        httpTransport.createRequestFactory(credential);
+    HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
     GenericUrl url = new GenericUrl(
         "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" +
-        credential.getAccessToken());
+            credential.getAccessToken());
     HttpRequest request = requestFactory.buildGetRequest(url);
     HttpResponse response = request.execute();
 
-    Payload payload =
-        new Gson().fromJson(response.parseAsString(), Payload.class);
-       
+    Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
+
     JsonObject jsonResponse = new JsonObject();
     jsonResponse.addProperty("access_token", tokenResponse.getAccessToken());
     jsonResponse.addProperty("email", payload.getEmail());
 
+    // Default Configuration
+    List<String> scope = Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/calendar");
+    List<Double> p_start = Arrays.asList(9d);
+    List<Double> p_end = Arrays.asList(5d);
+    List<List<Boolean>> p_days = Arrays.asList(
+        Arrays.asList(false, true, true, true, true, true, false));
+    List<Double> s_start = Arrays.asList(16d);
+    List<Double> s_end = Arrays.asList(19d);
+    List<List<Boolean>> s_days = Arrays.asList(
+        Arrays.asList(true, false, false, false, false, false, true));
+    String email = payload.getEmail();
     Document newUser = new Document("email", email)
-    .append("access_token", tokenResponse.getAccessToken())
-    .append("refresh_token", tokenResponse.getRefreshToken())
-    .append("expires_at", tokenResponse.getExpiresInSeconds())
-    .append("scope", Arrays.asList(" "))
-    .append("token_type", tokenResponse.getTokenType())
-    .append("timezone", "")
-    .append("calendars", Arrays.asList(" "))
-    .append("timerange", new Document("start", " ").append( "end", " "));
-
+        .append("access_token", tokenResponse.getAccessToken())
+        .append("refresh_token", tokenResponse.getRefreshToken())
+        .append("expires_at", tokenResponse.getExpiresInSeconds())
+        .append("scope", scope)
+        .append("token_type", tokenResponse.getTokenType())
+        .append("timezone", "0")
+        .append("calendar_id", Arrays.asList(email))
+        .append("preferred_timerange", new Document("start", p_start)
+            .append("end", p_end)
+            .append("days", p_days))
+        .append("suboptimal_timerange",
+            new Document("suboptimal_start", s_start)
+                .append("suboptimal_end", s_end)
+                .append("suboptimal_days", s_days));
 
     collection.insertOne(newUser);
 
     return jsonResponse.toString();
 
-    //make an account with the email, add it to the db 
-    //try to make email and access token a string to just pass into the mongo db
-    //make a new mongo db user once they are authenticated.
-    //create a new user in db with  id email access token and stuff, default values
+    // make an account with the email, add it to the db
+    // try to make email and access token a string to just pass into the mongo
+    // db make a new mongo db user once they are authenticated. create a new
+    // user in db with id email access token and stuff, default values
 
     // return payload.getEmail();
     // return tokenResponse.getAccessToken();
   }
 
   @PutMapping("/timezone")
-  public static ResponseEntity<String>
-  setTimezone(@RequestParam(value = "email") String email,
-              @RequestParam(value = "timezone") String timezone) {
+  public static ResponseEntity<String> setTimezone(@RequestParam(value = "email") String email,
+      @RequestParam(value = "timezone") String timezone) {
     // set timezone in db
     Document query = new Document("email", email);
     Document update = new Document("$set", new Document("timezone", timezone));
@@ -222,62 +229,69 @@ public class Endpoints {
   }
 
   @PostMapping("/timerange")
-  public static ResponseEntity<String>
-  addTimeRange(@RequestParam(value = "email") String email,
-               @RequestParam(value = "start") double start,
-               @RequestParam(value = "end") double end,
-               @RequestParam(value = "days") int days) {
+  public static ResponseEntity<String> addTimeRange(@RequestParam(value = "email") String email,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "start") double start,
+      @RequestParam(value = "end") double end,
+      @RequestParam(value = "days") List<Boolean> days) {
     // add time range for user in db
     Document query = new Document("email", email);
-    Document update =
-        new Document("$push", new Document("preferred_timerange.start", start)
-                                  .append("preferred_timerange.end", end)
-                                  .append("preferred_timerange.days", days));
+    String whichRange = type + "_timerange";
+    Document update = new Document("$push", new Document(whichRange + ".start", start)
+        .append(whichRange + ".end", end)
+        .append(whichRange + ".days", days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
   }
 
   @PatchMapping("/timerange")
-  public ResponseEntity<String>
-  updateTimeRange(@RequestParam(value = "email") String email,
-                  @RequestParam(value = "type") String type,
-                  @RequestParam(value = "index") int index,
-                  @RequestParam(value = "start") double start,
-                  @RequestParam(value = "end") double end,
-                  @RequestParam(value = "days") List<Boolean> days) {
+  public ResponseEntity<String> updateTimeRange(@RequestParam(value = "email") String email,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "index") int index,
+      @RequestParam(value = "start") double start,
+      @RequestParam(value = "end") double end,
+      @RequestParam(value = "days") List<Boolean> days) {
     // update time range for user in db
     String whichRange = type + "_timerange";
 
     Document query = new Document("email", email);
     Document update = new Document("$set", new Document(whichRange + ".start"
-                                                            + "." + index,
-                                                        start)
-                                               .append(whichRange + ".end"
-                                                           + "." + index,
-                                                       end)
-                                               .append(whichRange + ".days"
-                                                           + "." + index,
-                                                       days));
+        + "." + index,
+        start)
+        .append(whichRange + ".end"
+            + "." + index,
+            end)
+        .append(whichRange + ".days"
+            + "." + index,
+            days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range updated!");
   }
 
   @DeleteMapping("/timerange")
-  public ResponseEntity<String>
-  removeTimeRange(@RequestParam(value = "email") String email,
-                  @RequestParam(value = "type") int type,
-                  @RequestParam(value = "index") int index) {
+  public ResponseEntity<String> removeTimeRange(@RequestParam(value = "email") String email,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "index") int index) {
     // remove time range for user in db
     String whichRange = type + "_timerange";
-    String whichIndex = whichRange + "." + index;
 
     Document query = new Document("email", email);
-    Document update = new Document("$unset", new Document(whichIndex, null));
-    collection.updateOne(query, update);
+    Document updatestart = new Document(
+        "$unset", new Document(whichRange + ".start." + index, null));
+    Document updateend = new Document(
+        "$unset", new Document(whichRange + ".end." + index, null));
+    Document updatedays = new Document(
+        "$unset", new Document(whichRange + ".days." + index, null));
+    collection.updateOne(query, updatestart);
+    collection.updateOne(query, updateend);
+    collection.updateOne(query, updatedays);
 
-    update = new Document("$pull", new Document(whichRange, null));
-    collection.updateOne(query, update);
-
+    Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
+    Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
+    Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
+    collection.updateOne(query, removeNullStart);
+    collection.updateOne(query, removeNullEnd);
+    collection.updateOne(query, removeNullDays);
     return ResponseEntity.ok("Time range removed!");
   }
 
@@ -291,8 +305,7 @@ public class Endpoints {
       @RequestParam(value = "preferred_day") List<List<Boolean>> preferred_day,
       @RequestParam(value = "suboptimal_start") List<Double> suboptimal_start,
       @RequestParam(value = "suboptimal_end") List<Double> suboptimal_end,
-      @RequestParam(value = "suboptimal_day")
-      List<List<Boolean>> suboptimal_day) {
+      @RequestParam(value = "suboptimal_day") List<List<Boolean>> suboptimal_day) {
 
     DatabaseManager.currentUser user = new DatabaseManager.currentUser(
         email, timezone, calendar_id, preferred_start, preferred_end,
@@ -304,31 +317,30 @@ public class Endpoints {
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
-  public static DatabaseManager.currentUser
-  currentUser(@RequestParam(value = "email") String email) {
+  public static DatabaseManager.currentUser currentUser(@RequestParam(value = "email") String email) {
     Document d = fetchUser(collection, email);
 
     if (d == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
     }
 
-    Document pt = (Document)d.get("preferred_timerange");
-    Document st = (Document)d.get("suboptimal_timerange");
+    Document pt = (Document) d.get("preferred_timerange");
+    Document st = (Document) d.get("suboptimal_timerange");
     DatabaseManager.currentUser user = new DatabaseManager.currentUser(
         email, Double.valueOf(d.getString("timezone")),
-        (List<String>)d.get("calendar_id"), (List<Double>)pt.get("start"),
-        (List<Double>)pt.get("end"), (List<List<Boolean>>)pt.get("days"),
-        (List<Double>)st.get("suboptimal_start"),
-        (List<Double>)st.get("suboptimal_end"),
-        (List<List<Boolean>>)st.get("suboptimal_days"));
+        (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+        (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+        (List<Double>) st.get("suboptimal_start"),
+        (List<Double>) st.get("suboptimal_end"),
+        (List<List<Boolean>>) st.get("suboptimal_days"));
 
     return user;
   }
 
   @PutMapping("/calendar")
   public static void calendar(@RequestParam(value = "email") String email,
-                              @RequestParam(value = "calendar_id") String calendar_id,
-                              @RequestParam(value = "used") Boolean used) {
+      @RequestParam(value = "calendar_id") String calendar_id,
+      @RequestParam(value = "used") Boolean used) {
     Document query = new Document("email", email);
     Document update = new Document();
     if (used) {

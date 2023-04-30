@@ -3,6 +3,7 @@ package com.jetlagjelly.backend;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +25,8 @@ class BackendApplicationTests {
 
   @Test
   void addTimeRange() {
-    Endpoints.addTimeRange("bmclean2@oswego.edu", 1500, 1800, 1);
+    Endpoints.addTimeRange("bmclean2@oswego.edu", "preferred", 15, 18,
+        Arrays.asList(false, true, true, true, true, true, false));
   }
 
   @Test
@@ -76,7 +78,7 @@ class BackendApplicationTests {
     se.add(10.00);
 
     Endpoints.addNewUser("JetLagn@gmail.com", -5, cida, sta, ena, dyya, ss, se,
-                         sda);
+        sda);
   }
 
   @Test

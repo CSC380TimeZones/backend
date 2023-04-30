@@ -46,7 +46,7 @@ public class DatabaseManager {
     MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
     DB_URL = "mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" +
-             MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/";
+        MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/";
 
     client = MongoClients.create(DB_URL);
     db = client.getDatabase(MONGODB_DATABASE);
@@ -100,10 +100,9 @@ public class DatabaseManager {
     List<Double> se = new ArrayList<>();
     se.add(8.00);
 
-    User user =
-        new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
-                 "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer", -5,
-                 cida, sta, ena, dyya, ss, se, sda);
+    User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+        "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer", -5,
+        cida, sta, ena, dyya, ss, se, sda);
 
     // Document document;
     // document = newUser(user);
@@ -144,9 +143,9 @@ public class DatabaseManager {
     public List<List<Boolean>> subdays;
 
     public User(String em, String a, String r, Long ex, List<String> sc,
-                String tt, double t, List<String> cid, List<Double> s,
-                List<Double> e, List<List<Boolean>> d, List<Double> ss,
-                List<Double> se, List<List<Boolean>> sd) {
+        String tt, double t, List<String> cid, List<Double> s,
+        List<Double> e, List<List<Boolean>> d, List<Double> ss,
+        List<Double> se, List<List<Boolean>> sd) {
       email = em;
       access_token = a;
       refresh_token = r;
@@ -176,8 +175,8 @@ public class DatabaseManager {
     public List<List<Boolean>> subdays;
 
     public currentUser(String em, double t, List<String> cid, List<Double> s,
-                       List<Double> e, List<List<Boolean>> d, List<Double> ss,
-                       List<Double> se, List<List<Boolean>> sd) {
+        List<Double> e, List<List<Boolean>> d, List<Double> ss,
+        List<Double> se, List<List<Boolean>> sd) {
       email = em;
       timezone = t;
       calendar_id = cid;
@@ -192,40 +191,40 @@ public class DatabaseManager {
 
   public static Document newUser(User user) {
     Document tr = new Document()
-                      .append("start", user.start)
-                      .append("end", user.end)
-                      .append("days", user.days);
+        .append("start", user.start)
+        .append("end", user.end)
+        .append("days", user.days);
     Document st = new Document()
-                      .append("suboptimal_start", user.substart)
-                      .append("suboptimal_end", user.subend)
-                      .append("suboptimal_days", user.subdays);
+        .append("suboptimal_start", user.substart)
+        .append("suboptimal_end", user.subend)
+        .append("suboptimal_days", user.subdays);
     Document sampleDoc = new Document("email", user.email)
-                             .append("access_token", user.access_token)
-                             .append("refresh_token", user.refresh_token)
-                             .append("expires_at", user.expires_at)
-                             .append("scope", user.scope)
-                             .append("token_type", user.token_type)
-                             .append("timezone", user.timezone)
-                             .append("calendar_id", user.calendar_id)
-                             .append("preferred_timerange", tr)
-                             .append("suboptimal_timerange", st);
+        .append("access_token", user.access_token)
+        .append("refresh_token", user.refresh_token)
+        .append("expires_at", user.expires_at)
+        .append("scope", user.scope)
+        .append("token_type", user.token_type)
+        .append("timezone", user.timezone)
+        .append("calendar_id", user.calendar_id)
+        .append("preferred_timerange", tr)
+        .append("suboptimal_timerange", st);
     return sampleDoc;
   }
 
   public static Document newcurrentUser(currentUser user) {
     Document tr = new Document()
-                      .append("start", user.start)
-                      .append("end", user.end)
-                      .append("days", user.days);
+        .append("start", user.start)
+        .append("end", user.end)
+        .append("days", user.days);
     Document st = new Document()
-                      .append("suboptimal_start", user.substart)
-                      .append("suboptimal_end", user.subend)
-                      .append("suboptimal_days", user.subdays);
+        .append("suboptimal_start", user.substart)
+        .append("suboptimal_end", user.subend)
+        .append("suboptimal_days", user.subdays);
     Document sampleDoc = new Document("email", user.email)
-                             .append("timezone", user.timezone)
-                             .append("calendar_id", user.calendar_id)
-                             .append("preferred_timerange", tr)
-                             .append("suboptimal_timerange", st);
+        .append("timezone", user.timezone)
+        .append("calendar_id", user.calendar_id)
+        .append("preferred_timerange", tr)
+        .append("suboptimal_timerange", st);
     return sampleDoc;
   }
 
@@ -233,13 +232,13 @@ public class DatabaseManager {
 
     Bson projectionFields = Projections.fields(
         Projections.include("email", "timezone", "calendar_id",
-                            "preferred_timerange", "start", "end", "days",
-                            "suboptimal_timerange", "suboptimal_start",
-                            "suboptimal_end", "suboptimal_days"),
+            "preferred_timerange", "start", "end", "days",
+            "suboptimal_timerange", "suboptimal_start",
+            "suboptimal_end", "suboptimal_days"),
         Projections.excludeId());
-    Document doc = (Document)collection.find(eq("email", user.email))
-                       .projection(projectionFields)
-                       .first();
+    Document doc = (Document) collection.find(eq("email", user.email))
+        .projection(projectionFields)
+        .first();
     return doc;
   }
 
@@ -252,9 +251,9 @@ public class DatabaseManager {
             "start", "end", "days", "suboptimal_timerange", "suboptimal_start",
             "suboptimal_end", "suboptimal_days"),
         Projections.excludeId());
-    Document doc = (Document)collection.find(eq("email", email))
-                       .projection(projectionFields)
-                       .first();
+    Document doc = (Document) collection.find(eq("email", email))
+        .projection(projectionFields)
+        .first();
     if (doc == null) {
       sendEmail(email);
     }
@@ -262,16 +261,16 @@ public class DatabaseManager {
   }
 
   public static Document fetchCurrentUser(MongoCollection collection,
-                                          String email) {
+      String email) {
     Bson projectionFields = Projections.fields(
         Projections.include("email", "timezone", "calendar_id",
-                            "preferred_timerange", "start", "end", "days",
-                            "suboptimal_timerange", "suboptimal_start",
-                            "suboptimal_end", "suboptimal_days"),
+            "preferred_timerange", "start", "end", "days",
+            "suboptimal_timerange", "suboptimal_start",
+            "suboptimal_end", "suboptimal_days"),
         Projections.excludeId());
-    Document doc = (Document)collection.find(eq("email", email))
-                       .projection(projectionFields)
-                       .first();
+    Document doc = (Document) collection.find(eq("email", email))
+        .projection(projectionFields)
+        .first();
     return doc;
   }
 
@@ -283,20 +282,22 @@ public class DatabaseManager {
 
   public static Document tokens(User user) {
     Document accessToken = new Document()
-                               .append("token", user.access_token)
-                               .append("type", user.token_type)
-                               .append("expires_at", user.expires_at)
-                               .append("scope", user.scope)
-                               .append("refreshToken", user.refresh_token);
+        .append("token", user.access_token)
+        .append("type", user.token_type)
+        .append("expires_at", user.expires_at)
+        .append("scope", user.scope)
+        .append("refreshToken", user.refresh_token);
 
     return accessToken;
   }
 
-  public static void setTimezone(User user, double tz) { user.timezone = tz; }
+  public static void setTimezone(User user, double tz) {
+    user.timezone = tz;
+  }
 
   public static void updateTokens(User user, String access_token,
-                                  Long expires_at, String refresh_token,
-                                  List<String> scope, String token_type) {
+      Long expires_at, String refresh_token,
+      List<String> scope, String token_type) {
     user.access_token = access_token;
     user.expires_at = expires_at;
     user.refresh_token = refresh_token;
@@ -308,9 +309,8 @@ public class DatabaseManager {
     user.calendar_id.add(id);
   }
 
-  public static void
-  addTimeRange(User user, double start, double end,
-               List<Boolean> day) { // need parameter for day of
+  public static void addTimeRange(User user, double start, double end,
+      List<Boolean> day) { // need parameter for day of
     // the week (slot in the list
     // (or rather array[7]?)?)?
     user.start.add(start);
@@ -319,7 +319,7 @@ public class DatabaseManager {
   }
 
   public static void addSuboptimalTimes(User user, double start, double end,
-                                        List<Boolean> day) {
+      List<Boolean> day) {
     user.substart.add(start);
     user.subend.add(end);
     user.subdays.add(day);
@@ -347,12 +347,12 @@ public class DatabaseManager {
       Message message = new MimeMessage(session);
       message.setFrom(new InternetAddress(username));
       message.setRecipients(Message.RecipientType.TO,
-                            InternetAddress.parse(recipient));
+          InternetAddress.parse(recipient));
       message.setSubject("You Have Been Invited To Join JetLagJelly!");
       message.setText("Click this link to join JLJ today:"
-                      + "\n\n https://github.com/CSC380TimeZones/backend"
-                      + "\n\n From,"
-                      + "\n The JetLagJelly Team");
+          + "\n\n https://github.com/CSC380TimeZones/backend"
+          + "\n\n From,"
+          + "\n The JetLagJelly Team");
 
       Transport.send(message);
 
@@ -385,18 +385,18 @@ public class DatabaseManager {
       for (int i = 0; i < usedDays.size(); i++) {
         day.add(DayOfWeek.of(usedDays.get(i)));
         dbDay.add(DayOfWeek.of(usedDays.get(i)));
-        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(i),
-                                                     mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(i),
-                                                   mc.getStartDay(), user);
+        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
+            mc.getStartDay(), user);
+        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
+            mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
             start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                              (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
             end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                            (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -409,18 +409,16 @@ public class DatabaseManager {
       if (!day.contains(DayOfWeek.of(i))) {
         day.add(DayOfWeek.of(i));
         unusedDay.add(DayOfWeek.of(i));
-        LocalDateTime start =
-            getNextClosestDateTime(unusedDay, 9.00, mc.getStartDay(), user);
-        LocalDateTime end =
-            getNextClosestDateTime(unusedDay, 17.00, mc.getStartDay(), user);
+        LocalDateTime start = getNextClosestDateTime(unusedDay, 9.00, mc.getStartDay(), user);
+        LocalDateTime end = getNextClosestDateTime(unusedDay, 17.00, mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
             start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                              (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
             end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                            (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -490,14 +488,18 @@ public class DatabaseManager {
       end = e;
     }
 
-    public Long getStart() { return start; }
+    public Long getStart() {
+      return start;
+    }
 
-    public Long getEnd() { return end; }
+    public Long getEnd() {
+      return end;
+    }
   }
 
   static class IntervalComparator implements Comparator<Interval> {
     public int compare(Interval i1, Interval i2) {
-      return (int)(i1.getStart() - i2.getStart());
+      return (int) (i1.getStart() - i2.getStart());
     }
   }
 
@@ -516,15 +518,15 @@ public class DatabaseManager {
         LocalDateTime start = getNextClosestDateTime(
             subdbDay, user.substart.get(i), mc.getStartDay(), user);
         LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(i),
-                                                   mc.getStartDay(), user);
+            mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
             start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                              (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
             end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                            (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
@@ -537,18 +539,16 @@ public class DatabaseManager {
       if (!subday.contains(DayOfWeek.of(i))) {
         subday.add(DayOfWeek.of(i));
         subunusedDay.add(DayOfWeek.of(i));
-        LocalDateTime start =
-            getNextClosestDateTime(subunusedDay, 9.00, mc.getStartDay(), user);
-        LocalDateTime end =
-            getNextClosestDateTime(subunusedDay, 17.00, mc.getStartDay(), user);
+        LocalDateTime start = getNextClosestDateTime(subunusedDay, 9.00, mc.getStartDay(), user);
+        LocalDateTime end = getNextClosestDateTime(subunusedDay, 17.00, mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
             start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                              (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
             end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                                            (int)(user.timezone * 360))));
+                (int) (user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
@@ -575,9 +575,8 @@ public class DatabaseManager {
     return subblockRanges;
   }
 
-  public static LocalDateTime
-  getNextClosestDateTime(List<DayOfWeek> daysOfWeek, double hour,
-                         long meetingStartTime, User user)
+  public static LocalDateTime getNextClosestDateTime(List<DayOfWeek> daysOfWeek, double hour,
+      long meetingStartTime, User user)
       throws IllegalArgumentException {
     if (daysOfWeek.isEmpty()) {
       throw new IllegalArgumentException("daysOfWeek should not be empty.");
@@ -587,15 +586,14 @@ public class DatabaseManager {
 
     int timeHours = Integer.parseInt(hours.substring(0, hours.indexOf(".")));
     double mins = Double.parseDouble(hours.substring(hours.indexOf(".")));
-    int minutes = (int)(mins * 60);
+    int minutes = (int) (mins * 60);
 
     final LocalDateTime dateNow = LocalDateTime.ofInstant(
         Instant.ofEpochMilli(meetingStartTime),
         ZoneId.ofOffset("UTC",
-                        ZoneOffset.ofTotalSeconds((int)(user.timezone * 360))));
-    final LocalDateTime dateNowWithDifferentTime =
-        dateNow.withHour(timeHours).withMinute(minutes).withSecond(0).withNano(
-            0);
+            ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+    final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(minutes).withSecond(0)
+        .withNano(0);
 
     return daysOfWeek.stream()
         .map(
