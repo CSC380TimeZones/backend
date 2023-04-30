@@ -25,19 +25,17 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.security.GeneralSecurityException;
 import java.util.*;
 
 import static com.jetlagjelly.backend.Endpoints.mc;
-
 
 /* class to demonstarte use of Calendar events list API */
 public class CalendarQuickstart {
     /**
      * Application name.
      */
-    private static final String APPLICATION_NAME = "JetLagJelly Quickstart";
+    private static final String APPLICATION_NAME = "JetLagJelly";
     /**
      * Global instance of the JSON factory.
      */
@@ -51,11 +49,8 @@ public class CalendarQuickstart {
      * Global instance of the scopes required by this quickstart.
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
-    private static final List<String> SCOPES =
-            Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
+    private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR_READONLY);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
-
-    public static ArrayList<Long> eventsList = new ArrayList<>();
 
     /**
      * Creates an authorized Credential object.
@@ -71,8 +66,7 @@ public class CalendarQuickstart {
         if (in == null) {
             throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
         }
-        GoogleClientSecrets clientSecrets =
-                GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+        GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
         // Build flow and trigger user authorization request.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -82,18 +76,17 @@ public class CalendarQuickstart {
                 .build();
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
         Credential credential = new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
-        //returns an authorized Credential object.
+        // returns an authorized Credential object.
         return credential;
     }
 
     public static ArrayList<Long> events(String token, ArrayList<String> requiredCalendarIDs) throws IOException, GeneralSecurityException {
         Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(token);
-
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Calendar service =
-                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
+
+        Calendar service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
 
         // hash map that stores <key:calendarID, value:calendarName>
         HashMap<String, String> calendarsListHT = new HashMap<>();
@@ -104,7 +97,11 @@ public class CalendarQuickstart {
         // Iterate through entries in calendar list and store them in hash map
         String pageToken = null;
         do {
-            CalendarList calendarList = calendarService.calendarList().list().setPageToken(pageToken).execute();
+            CalendarList calendarList = calendarService
+                    .calendarList()
+                    .list()
+                    .setPageToken(pageToken)
+                    .execute();
             List<CalendarListEntry> calendarItems = calendarList.getItems();
 
             for (CalendarListEntry calendarListEntry : calendarItems) {
@@ -113,11 +110,10 @@ public class CalendarQuickstart {
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
 
-        //print the name of all the calendars
-        //System.out.println(calendarsListHT);
+        // print the name of all the calendars
+        System.out.println(calendarsListHT);
 
-        // Retrieve a single user timezone
-        Setting setting = service.settings().get("timezone").execute();
+        ArrayList<Long> eventsList = new ArrayList<>();
 
         // iterate through hash table and events for the required calendar ID
         for (String requiredCalendarID : requiredCalendarIDs) {
@@ -128,6 +124,7 @@ public class CalendarQuickstart {
                     Date endate = new Date(mc.getEndDay());
                     DateTime en = new DateTime(endate);
                     Events events = service.events().list(calendarID)
+                            .setTimeMax(en)
                             .setTimeMin(st)
                             .setTimeMax(en)
                             .setOrderBy("startTime")
@@ -162,7 +159,8 @@ public class CalendarQuickstart {
 
     public static void main(String... args) throws IOException, GeneralSecurityException {
         String accessToken = "ya29.a0Ael9sCOLafLREphMeAFWD9aDISbPaTtCHqbOWdadQkP1qlDRONLDJPQi5uDNBTy-sy7f6Mq-QeyOtFJT9X3-ENUqIJpxxUTTlLPP8lCXW-IAeCf1B7bdlafVYVhErVr_K7P34oYwLocJkRrdByJcc7fMjrMdaCgYKAT0SARMSFQF4udJh4h7Paod_XjK1FcrjIEo9bw0163";
-        DateTime start = new DateTime(System.currentTimeMillis());;
+        DateTime start = new DateTime(System.currentTimeMillis());
+        ;
         DateTime end = DateTime.parseRfc3339("2023-05-13T00:00:00.000-04:00");
         ArrayList<String> calendarID = new ArrayList<>();
         calendarID.add("en.np#holiday@group.v.calendar.google.com");
@@ -171,14 +169,14 @@ public class CalendarQuickstart {
         getCalendarData(accessToken, calendarID, start, end);
     }
 
-    public static void getCalendarData(String token, ArrayList<String> requiredCalendarIDs, DateTime startTime, DateTime endTime) throws IOException, GeneralSecurityException {
+    public static void getCalendarData(String token, ArrayList<String> requiredCalendarIDs, DateTime startTime,
+            DateTime endTime) throws IOException, GeneralSecurityException {
         Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(token);
 
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Calendar service =
-                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                        .setApplicationName(APPLICATION_NAME)
-                        .build();
+        Calendar service = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                .setApplicationName(APPLICATION_NAME)
+                .build();
 
         // hash map that stores <key:calendarID, value:calendarName>
         HashMap<String, String> calendarsListHT = new HashMap<>();
@@ -198,8 +196,8 @@ public class CalendarQuickstart {
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
 
-        //print the name of all the calendars
-        //System.out.println(calendarsListHT);
+        // print the name of all the calendars
+        // System.out.println(calendarsListHT);
         System.out.println(calendarsListHT.values());
 
         // Retrieve a single user timezone
