@@ -367,7 +367,7 @@ public class DatabaseManager {
     List<Integer> usedDays = new ArrayList<>();
     for (int i = 0; i < tr.size(); i++) {
       if (tr.get(i).equals(true)) {
-        usedDays.add(i);
+        usedDays.add(((i + 6) % 7) + 1);
       }
     }
     return usedDays;
@@ -400,26 +400,6 @@ public class DatabaseManager {
         ranges.add(startTime);
         ranges.add(endTime);
         dbDay.remove(DayOfWeek.of(usedDays.get(i)));
-      }
-    }
-
-    for (int i = 1; i <= 5; i++) {
-      if (!day.contains(DayOfWeek.of(i))) {
-        day.add(DayOfWeek.of(i));
-        unusedDay.add(DayOfWeek.of(i));
-        LocalDateTime start = getNextClosestDateTime(unusedDay, 9.00, mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(unusedDay, 17.00, mc.getStartDay(), user);
-        ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
-        long startTime = zdtstart.toInstant().toEpochMilli();
-
-        ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
-        long endTime = zdtend.toInstant().toEpochMilli();
-
-        ranges.add(startTime);
-        ranges.add(endTime);
-        unusedDay.remove(DayOfWeek.of(i));
       }
     }
 
@@ -526,26 +506,6 @@ public class DatabaseManager {
         subranges.add(startTime);
         subranges.add(endTime);
         subdbDay.remove(DayOfWeek.of(usedDays.get(i)));
-      }
-    }
-
-    for (int i = 1; i <= 5; i++) {
-      if (!subday.contains(DayOfWeek.of(i))) {
-        subday.add(DayOfWeek.of(i));
-        subunusedDay.add(DayOfWeek.of(i));
-        LocalDateTime start = getNextClosestDateTime(subunusedDay, 9.00, mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(subunusedDay, 17.00, mc.getStartDay(), user);
-        ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
-        long startTime = zdtstart.toInstant().toEpochMilli();
-
-        ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
-        long endTime = zdtend.toInstant().toEpochMilli();
-
-        subranges.add(startTime);
-        subranges.add(endTime);
-        subunusedDay.remove(DayOfWeek.of(i));
       }
     }
 

@@ -89,6 +89,8 @@ public class Endpoints {
           (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
+
+      a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
     if (notFound.size() < 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -98,9 +100,6 @@ public class Endpoints {
     ArrayList<Long> p = mm.intersectMany(a);
     // System.out.println(p);
 
-    // System.out.println("Events list " +
-    // events("ya29.a0Ael9sCOxyvQXDCeCYvs52eS13MnXiYHouO_imWwnQYKioVyT2TciADhRzIoRz4SYTi3XnUE0ioq7JBFqyrovUKKCIuSNuB6q-ixspwB0U6ycNZXNZoMTYA03Z6WDK4SAh03L9kvQO3K51DjvBNbGXktv4R1GgJAaCgYKAcASARESFQF4udJhSW9tE-VC6NAixQ_c4Lx8Dg0166",
-    // "bmclean426@gmail.com"));
     MeetingTimes mt = new MeetingTimes();
     for (int i = 0; i < p.size(); i++) {
       if (i % 2 == 1) {

@@ -86,17 +86,19 @@ public class CalendarQuickstart {
         return credential;
     }
 
-    public static ArrayList events() throws IOException, GeneralSecurityException {
+    public static ArrayList events(String token, ArrayList<String> requiredCalendarIDs) throws IOException, GeneralSecurityException {
+        Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(token);
+
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         Calendar service =
-                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                         .setApplicationName(APPLICATION_NAME)
                         .build();
 
         // hash map that stores <key:calendarID, value:calendarName>
         HashMap<String, String> calendarsListHT = new HashMap<>();
         // Initialize Calendar service with valid OAuth credentials
-        Calendar calendarService = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+        Calendar calendarService = new Calendar.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
                 .setApplicationName("applicationName").build();
 
         // Iterate through entries in calendar list and store them in hash map
@@ -110,52 +112,48 @@ public class CalendarQuickstart {
             }
             pageToken = calendarList.getNextPageToken();
         } while (pageToken != null);
-        System.out.println(calendarsListHT.values());
+
+        //print the name of all the calendars
+        //System.out.println(calendarsListHT);
 
         // Retrieve a single user timezone
         Setting setting = service.settings().get("timezone").execute();
 
-        System.out.println(setting.getId() + ": " + setting.getValue());
-
-        // iterate through hash table and fetch first ten events for each calendar ID
-        for (String calendarID : calendarsListHT.keySet()) {
-            DateTime now = new DateTime(System.currentTimeMillis());
-            System.out.println("\n" + calendarsListHT.get(calendarID));
-            Date date = new Date(mc.getStartDay());
-            DateTime st = new DateTime(date);
-            Date endate = new Date(mc.getEndDay());
-            DateTime en = new DateTime(endate);
-            Events events = service.events().list(calendarID)
-//                    .setMaxResults(10)
-                    .setTimeMin(st)
-                    .setTimeMax(en)
-                    .setOrderBy("startTime")
-                    .setSingleEvents(true)
-                    .execute();
-            List<Event> items = events.getItems();
-            if (items.isEmpty()) {
-                System.out.println("No upcoming events found.");
-            } else {
-                System.out.println("Upcoming events");
-                eventsList.add(mc.getStartDay());
-                for (Event event : items) {
-                    DateTime start = event.getStart().getDateTime();
-                    DateTime end = event.getEnd().getDateTime();
-                    if (start == null) {
-                        start = event.getStart().getDate();
+        // iterate through hash table and events for the required calendar ID
+        for (String requiredCalendarID : requiredCalendarIDs) {
+            for (String calendarID : calendarsListHT.keySet()) {
+                if (calendarID.equals(requiredCalendarID)) {
+                    Date date = new Date(mc.getStartDay());
+                    DateTime st = new DateTime(date);
+                    Date endate = new Date(mc.getEndDay());
+                    DateTime en = new DateTime(endate);
+                    Events events = service.events().list(calendarID)
+                            .setTimeMax(en)
+                            .setTimeMin(st)
+                            .setOrderBy("startTime")
+                            .setSingleEvents(true)
+                            .execute();
+                    List<Event> items = events.getItems();
+                    if (items.isEmpty()) {
+                    } else {
+                        eventsList.add(mc.getStartDay());
+                        for (Event event : items) {
+                            DateTime start = event.getStart().getDateTime();
+                            DateTime end = event.getEnd().getDateTime();
+                            if (start == null) {
+                                start = event.getStart().getDate();
+                            }
+                            if (end == null) {
+                                end = event.getEnd().getDate();
+                            }
+                            Long unixStart = start.getValue();
+                            Long unixEnd = end.getValue();
+                            eventsList.add(unixStart);
+                            eventsList.add(unixEnd);
+                        }
+                        eventsList.add(mc.getEndDay());
                     }
-                    if (end == null) {
-                        end = event.getEnd().getDate();
-                    }
-                    Long unixStart = start.getValue();
-                    Long unixEnd = end.getValue();
-
-                    eventsList.add(unixStart);
-                    eventsList.add(unixEnd);
-
-                    System.out.printf("event: %s, start: (%s), end: (%s)\n", event.getSummary(), start, end);
                 }
-                eventsList.add(mc.getEndDay());
             }
         }
         Collections.sort(eventsList);
