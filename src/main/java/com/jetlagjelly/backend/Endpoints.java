@@ -89,9 +89,25 @@ public class Endpoints {
           (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
+    }
 
+    for (String s : emailList) {
+      Document d = fetchUser(collection, s);
+      Document pt = (Document) d.get("preferred_timerange");
+      Document st = (Document) d.get("suboptimal_timerange");
+      DatabaseManager.User user = new DatabaseManager.User(
+              s, d.getString("access_token"), d.getString("refresh_token"),
+              d.getLong("expires_at"), (List<String>) d.get("scope"),
+              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+              (List<Double>) st.get("suboptimal_start"),
+              (List<Double>) st.get("suboptimal_end"),
+              (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
+
+
     if (notFound.size() < 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "profile not found for:  " + notFound);

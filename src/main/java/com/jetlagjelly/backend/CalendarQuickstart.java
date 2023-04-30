@@ -86,7 +86,7 @@ public class CalendarQuickstart {
         return credential;
     }
 
-    public static ArrayList events(String token, ArrayList<String> requiredCalendarIDs) throws IOException, GeneralSecurityException {
+    public static ArrayList<Long> events(String token, ArrayList<String> requiredCalendarIDs) throws IOException, GeneralSecurityException {
         Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(token);
 
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -128,8 +128,8 @@ public class CalendarQuickstart {
                     Date endate = new Date(mc.getEndDay());
                     DateTime en = new DateTime(endate);
                     Events events = service.events().list(calendarID)
-                            .setTimeMax(en)
                             .setTimeMin(st)
+                            .setTimeMax(en)
                             .setOrderBy("startTime")
                             .setSingleEvents(true)
                             .execute();
