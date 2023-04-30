@@ -14,8 +14,8 @@ class BackendApplicationTests {
   @Test
   void contextLoads() throws GeneralSecurityException, IOException {
     Endpoints.getMeetingConstraints(
-        "bmclean2@oswego.edu JetLagJellyFan@gmail.com", 120, 1682308800000L,
-        1682715600000L);
+        "bmclean2@oswego.edu JetLagJellyFan@gmail.com", 120, 1682913600000L,
+            1683345540000L);
   }
 
   @Test

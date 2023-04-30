@@ -385,9 +385,9 @@ public class DatabaseManager {
       for (int i = 0; i < usedDays.size(); i++) {
         day.add(DayOfWeek.of(usedDays.get(i)));
         dbDay.add(DayOfWeek.of(usedDays.get(i)));
-        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(i),
+        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
                 mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(i),
+        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
                 mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
                 start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
