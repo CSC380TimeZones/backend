@@ -45,7 +45,7 @@ public class DatabaseManager {
     MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
     MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
-    DB_URL = "mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" +
+    DB_URL = "mongodb://" +
         MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/";
 
     client = MongoClients.create(DB_URL);
@@ -365,7 +365,7 @@ public class DatabaseManager {
 
   public static List<Integer> getTimeRangeDays(List<Boolean> tr) {
     List<Integer> usedDays = new ArrayList<>();
-    for (int i = 1; i < tr.size(); i++) {
+    for (int i = 0; i < tr.size(); i++) {
       if (tr.get(i).equals(true)) {
         usedDays.add(i + 1);
       }
@@ -385,18 +385,16 @@ public class DatabaseManager {
       for (int i = 0; i < usedDays.size(); i++) {
         day.add(DayOfWeek.of(usedDays.get(i)));
         dbDay.add(DayOfWeek.of(usedDays.get(i)));
-        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
-            mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
-            mc.getStartDay(), user);
+        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(i),
+                mc.getStartDay(), user);
+        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(i),
+                mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+                start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+                end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -412,13 +410,11 @@ public class DatabaseManager {
         LocalDateTime start = getNextClosestDateTime(unusedDay, 9.00, mc.getStartDay(), user);
         LocalDateTime end = getNextClosestDateTime(unusedDay, 17.00, mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -520,13 +516,11 @@ public class DatabaseManager {
         LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(i),
             mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
@@ -542,13 +536,11 @@ public class DatabaseManager {
         LocalDateTime start = getNextClosestDateTime(subunusedDay, 9.00, mc.getStartDay(), user);
         LocalDateTime end = getNextClosestDateTime(subunusedDay, 17.00, mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds(
-                (int) (user.timezone * 360))));
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
