@@ -67,10 +67,15 @@ public class Endpoints {
     Collections.addAll(emailList, emailArray);
     ArrayList<ArrayList<Long>> a = new ArrayList<>();
     ArrayList<ArrayList<Long>> b = new ArrayList<>();
-    ArrayList<DatabaseManager.User> notFound = new ArrayList<>();
+    ArrayList<String> notFound = new ArrayList<>();
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
+
+      if (d == null) {
+        notFound.add(s);
+        continue;
+      }
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(

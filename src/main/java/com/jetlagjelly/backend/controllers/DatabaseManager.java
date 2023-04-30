@@ -45,7 +45,7 @@ public class DatabaseManager {
     MONGODB_LOCAL_PORT = dotenv.get("MONGODB_LOCAL_PORT");
     MONGODB_HOSTNAME = dotenv.get("MONGODB_HOSTNAME");
 
-    DB_URL = "mongodb://" +
+    DB_URL = "mongodb://" + MONGODB_USER + ":" + MONGODB_PASSWORD + "@" +
         MONGODB_HOSTNAME + ":" + MONGODB_LOCAL_PORT + "/";
 
     client = MongoClients.create(DB_URL);
@@ -386,15 +386,15 @@ public class DatabaseManager {
         day.add(DayOfWeek.of(usedDays.get(i)));
         dbDay.add(DayOfWeek.of(usedDays.get(i)));
         LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
-                mc.getStartDay(), user);
+            mc.getStartDay(), user);
         LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
-                mc.getStartDay(), user);
+            mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-                start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-                end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -512,8 +512,8 @@ public class DatabaseManager {
         subday.add(DayOfWeek.of(usedDays.get(i)));
         subdbDay.add(DayOfWeek.of(usedDays.get(i)));
         LocalDateTime start = getNextClosestDateTime(
-            subdbDay, user.substart.get(i), mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(i),
+            subdbDay, user.substart.get(j), mc.getStartDay(), user);
+        LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(j),
             mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
             start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
