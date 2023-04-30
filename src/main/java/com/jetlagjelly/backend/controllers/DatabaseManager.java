@@ -367,7 +367,7 @@ public class DatabaseManager {
     List<Integer> usedDays = new ArrayList<>();
     for (int i = 0; i < tr.size(); i++) {
       if (tr.get(i).equals(true)) {
-        usedDays.add(i + 1);
+        usedDays.add(i);
       }
     }
     return usedDays;

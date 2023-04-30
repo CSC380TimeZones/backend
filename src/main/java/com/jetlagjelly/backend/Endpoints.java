@@ -182,7 +182,7 @@ public class Endpoints {
     List<String> scope = Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/calendar");
     List<Double> p_start = Arrays.asList(9d);
-    List<Double> p_end = Arrays.asList(5d);
+    List<Double> p_end = Arrays.asList(17d);
     List<List<Boolean>> p_days = Arrays.asList(
         Arrays.asList(false, true, true, true, true, true, false));
     List<Double> s_start = Arrays.asList(16d);
