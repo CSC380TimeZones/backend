@@ -42,6 +42,8 @@ public class AuthorizationManager {
         .setRedirectUri(REDIRECT_URL)
         .setAccessType("offline");
 
+    System.out.println(url.toString());
+
     return url.toString();
   }
 
@@ -106,19 +108,19 @@ public class AuthorizationManager {
   }
 
   private static JsonObject getCredentials() {
-    String credentialsPath = "src/main/resources/credentials.json";
+    String credentialsPath = System.getProperty("user.dir") + "/src/main/resources/credentials.json";
 
     BufferedReader reader;
     try {
       reader = new BufferedReader(new FileReader(credentialsPath));
     } catch (FileNotFoundException e) {
-      System.out.println("Cannot find file: " + System.getProperty("user.dir") + credentialsPath);
+      System.out.println("Cannot find file: " + credentialsPath);
       return null;
     }
 
     Gson gson = new Gson();
     JsonObject json = gson.fromJson(reader, JsonObject.class);
 
-    return (JsonObject) json.get("installed");
+    return (JsonObject) json.get("web");
   }
 }
