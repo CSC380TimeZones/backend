@@ -72,6 +72,8 @@ public class Endpoints {
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
 
+
+      // Add user to not found list if email is not in database, and skip email
       if (d == null) {
         notFound.add(s);
         continue;
@@ -79,14 +81,14 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-          s, d.getString("access_token"), d.getString("refresh_token"),
-          d.getLong("expires_at"), (List<String>) d.get("scope"),
-          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-          (List<Double>) st.get("suboptimal_start"),
-          (List<Double>) st.get("suboptimal_end"),
-          (List<List<Boolean>>) st.get("suboptimal_days"));
+              s, d.getString("access_token"), d.getString("refresh_token"),
+              d.getLong("expires_at"), (List<String>) d.get("scope"),
+              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+              (List<Double>) st.get("suboptimal_start"),
+              (List<Double>) st.get("suboptimal_end"),
+              (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
     }
@@ -104,7 +106,7 @@ public class Endpoints {
               (List<Double>) st.get("suboptimal_start"),
               (List<Double>) st.get("suboptimal_end"),
               (List<List<Boolean>>) st.get("suboptimal_days"));
-      a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
+      a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
 
 
@@ -135,6 +137,24 @@ public class Endpoints {
       }
     }
 
+    for (int i = 0; i < mt.startTimes.size(); i++) {
+      long difference = mt.endTimes.get(i) - mt.startTimes.get(i);
+
+      if (difference < 1000 * 60 * mc.getMtngLength()) {
+        mt.startTimes.remove(i);
+        mt.endTimes.remove(i);
+      }
+    }
+
+    for (int i = 0; i < mt.subStartTimes.size(); i++) {
+      long difference = mt.subEndTimes.get(i) - mt.subStartTimes.get(i);
+
+      if (difference > 1000 * 60 * mc.getMtngLength()) {
+        mt.subStartTimes.remove(i);
+        mt.subEndTimes.remove(i);
+      }
+    }
+
     System.out.println("startTimes:  " + mt.startTimes);
     System.out.println("endTimes:  " + mt.endTimes);
 
@@ -157,8 +177,10 @@ public class Endpoints {
         .build();
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
-    GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URL);
-
+    GoogleAuthorizationCodeRequestUrl url = flow
+            .newAuthorizationUrl()
+            .setRedirectUri(REDIRECT_URL)
+            .setAccessType("offline");
     return new RedirectView(url.toString());
   }
 
@@ -205,7 +227,7 @@ public class Endpoints {
     List<List<Boolean>> s_days = Arrays.asList(
         Arrays.asList(true, false, false, false, false, false, true));
     String email = payload.getEmail();
-    Document newUser = new Document("email", email)
+    Document newUser = new Document("$set" , new Document("email", email)
         .append("access_token", tokenResponse.getAccessToken())
         .append("refresh_token", tokenResponse.getRefreshToken())
         .append("expires_at", tokenResponse.getExpiresInSeconds())
@@ -219,10 +241,10 @@ public class Endpoints {
         .append("suboptimal_timerange",
             new Document("suboptimal_start", s_start)
                 .append("suboptimal_end", s_end)
-                .append("suboptimal_days", s_days));
+                .append("suboptimal_days", s_days)));
 
-    collection.insertOne(newUser);
-
+    Document query = new Document("email", email);
+    collection.updateOne(query, newUser);
     return jsonResponse.toString();
 
     // make an account with the email, add it to the db
