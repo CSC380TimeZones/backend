@@ -27,10 +27,8 @@ import com.mongodb.client.MongoCollection;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
 import org.bson.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +57,10 @@ public class Endpoints {
     mc.setMtngLength(mtngLength);
     mc.setStartDay(startDay);
     mc.setEndDay(endDay);
+
+    Long length = mc.getEndDay() - mc.getStartDay();
+    Date dt = new Date(length);
+
 
     MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
@@ -283,9 +285,9 @@ public class Endpoints {
     // add time range for user in db
     Document query = new Document("email", email);
     String whichRange = type + "_timerange";
-    Document update = new Document("$push", new Document(whichRange + ".suboptimal_start", start)
-        .append(whichRange + ".suboptimal_end", end)
-        .append(whichRange + ".suboptimal_days", days));
+    Document update = new Document("$push", new Document(whichRange + "." + type + "start", start)
+        .append(whichRange + "." + type + "end", end)
+        .append(whichRange + "." + type + "days", days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
   }
@@ -301,13 +303,13 @@ public class Endpoints {
     String whichRange = type + "_timerange";
 
     Document query = new Document("email", email);
-    Document update = new Document("$set", new Document(whichRange + ".start"
+    Document update = new Document("$set", new Document(whichRange + "." + type + "start"
         + "." + index,
         start)
-        .append(whichRange + ".end"
+        .append(whichRange + "." + type + "end"
             + "." + index,
             end)
-        .append(whichRange + ".days"
+        .append(whichRange + "." + type + "days"
             + "." + index,
             days));
     collection.updateOne(query, update);
@@ -323,18 +325,18 @@ public class Endpoints {
 
     Document query = new Document("email", email);
     Document updatestart = new Document(
-        "$unset", new Document(whichRange + ".start." + index, null));
+        "$unset", new Document(whichRange + "." + type + "start." + index, null));
     Document updateend = new Document(
-        "$unset", new Document(whichRange + ".end." + index, null));
+        "$unset", new Document(whichRange + "." + type + "end." + index, null));
     Document updatedays = new Document(
-        "$unset", new Document(whichRange + ".days." + index, null));
+        "$unset", new Document(whichRange + "." + type + "days." + index, null));
     collection.updateOne(query, updatestart);
     collection.updateOne(query, updateend);
     collection.updateOne(query, updatedays);
 
-    Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
-    Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
-    Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
+    Document removeNullStart = new Document("$pull", new Document(whichRange + "." + type + "start", null));
+    Document removeNullEnd = new Document("$pull", new Document(whichRange + "." + type + "end", null));
+    Document removeNullDays = new Document("$pull", new Document(whichRange + "." + type + "days", null));
     collection.updateOne(query, removeNullStart);
     collection.updateOne(query, removeNullEnd);
     collection.updateOne(query, removeNullDays);
