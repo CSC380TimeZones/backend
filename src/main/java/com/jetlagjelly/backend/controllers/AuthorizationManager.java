@@ -31,8 +31,8 @@ public class AuthorizationManager {
     GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
         httpTransport,
         new GsonFactory(),
-        credentials.get("client_id").toString(),
-        credentials.get("client_secret").toString(),
+        credentials.get("client_id").getAsString(),
+        credentials.get("client_secret").getAsString(),
         Arrays.asList("https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/calendar"))
         .build();
 
@@ -52,8 +52,8 @@ public class AuthorizationManager {
     GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
         httpTransport,
         new GsonFactory(),
-        credentials.get("client_id").toString(),
-        credentials.get("client_secret").toString(),
+        credentials.get("client_id").getAsString(),
+        credentials.get("client_secret").getAsString(),
         authorizationCode, REDIRECT_URL)
         .execute();
     return tokenResponse;
@@ -67,8 +67,8 @@ public class AuthorizationManager {
         httpTransport,
         new GsonFactory(),
         refreshToken,
-        credentials.get("client_secret").toString(),
-        credentials.get("client_id").toString());
+        credentials.get("client_secret").getAsString(),
+        credentials.get("client_id").getAsString());
 
     try {
       GoogleTokenResponse tokenResponse = refreshTokenRequest.execute();
