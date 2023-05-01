@@ -2,7 +2,7 @@ package com.jetlagjelly.backend.controllers;
 
 import static com.mongodb.client.model.Filters.eq;
 
-import com.jetlagjelly.backend.models.MeetingContraint;
+import com.jetlagjelly.backend.models.*;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -34,7 +34,7 @@ public class DatabaseManager {
   public static String DB_URL;
   public static MongoClient client;
   public static MongoDatabase db;
-  public static MongoCollection collection;
+  public static MongoCollection<Document> collection;
 
   public DatabaseManager() {
     MONGODB_USER = dotenv.get("MONGODB_USER");
@@ -49,116 +49,6 @@ public class DatabaseManager {
     client = MongoClients.create(DB_URL);
     db = client.getDatabase(MONGODB_DATABASE);
     collection = db.getCollection("users");
-  }
-
-  public static void main(String[] args) {
-
-    List<String> sca = new ArrayList<>();
-    sca.add("create");
-    List<String> cida = new ArrayList<>();
-    cida.add("Phases of the Moon");
-    List<List<Boolean>> dyya = new ArrayList<>();
-    List<Boolean> dya = new ArrayList<>();
-    dya.add(0, true);
-    dya.add(1, false);
-    dya.add(2, false);
-    dya.add(3, false);
-    dya.add(4, false);
-    dya.add(5, false);
-    dya.add(6, false);
-    List<Boolean> dyaa = new ArrayList<>();
-    dya.add(0, false);
-    dya.add(1, false);
-    dya.add(2, false);
-    dya.add(3, false);
-    dya.add(4, true);
-    dya.add(5, false);
-    dya.add(6, false);
-    dyya.add(0, dya);
-    dyya.add(1, dyaa);
-
-    List<List<Boolean>> sda = new ArrayList<>();
-    List<Boolean> sd = new ArrayList<>();
-    sd.add(0, false);
-    sd.add(1, true);
-    sd.add(2, false);
-    sd.add(3, false);
-    sd.add(4, false);
-    sd.add(5, false);
-    sd.add(6, false);
-    sda.add(sd);
-    List<Double> sta = new ArrayList<>();
-    sta.add(3.00);
-    sta.add(12.00);
-    List<Double> ena = new ArrayList<>();
-    ena.add(4.00);
-    ena.add(20.00);
-    List<Double> ss = new ArrayList<>();
-    ss.add(2.00);
-    List<Double> se = new ArrayList<>();
-    se.add(8.00);
-
-    User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
-        "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer", -5,
-        cida, sta, ena, dyya, ss, se, sda);
-
-    // Document document;
-    // document = newUser(user);
-    // collection.insertOne(document);
-
-    // document = fetchUser(collection, "bmclean2@oswego.edu");
-    // System.out.println(document.get("calendar_id"));
-
-    // document = meetingMgr(collection, user);
-    // System.out.println(document);
-
-    // deleteUser(collection, user);
-
-    // setTimezone(user, "-8");
-    // document = newUser(user);
-    // deleteUser(collection, user);
-    // collection.insertOne(document);
-
-    // System.out.println(concreteTime(user, mc));
-
-    // System.out.println(DB_URL);
-  }
-
-  public static final class User {
-    public String email;
-    public String access_token;
-    public String refresh_token;
-    public Long expires_at;
-    public List<String> scope;
-    public String token_type;
-    public double timezone;
-    public List<String> calendar_id;
-    public List<Double> start;
-    public List<Double> end;
-    public List<List<Boolean>> days;
-    public List<Double> substart;
-    public List<Double> subend;
-    public List<List<Boolean>> subdays;
-
-    public User(String em, String a, String r, Long ex, List<String> sc,
-        String tt, double t, List<String> cid, List<Double> s,
-        List<Double> e, List<List<Boolean>> d, List<Double> ss,
-        List<Double> se, List<List<Boolean>> sd) {
-      email = em;
-      access_token = a;
-      refresh_token = r;
-      expires_at = ex;
-      scope = sc;
-      token_type = tt;
-      timezone = t;
-      calendar_id = cid;
-      start = s;
-      end = e;
-      days = d;
-      substart = ss;
-      subend = se;
-      subdays = sd;
-    }
   }
 
   public static final class currentUser {
@@ -187,16 +77,16 @@ public class DatabaseManager {
     }
   }
 
-  public static Document newUser(User user) {
-    Document tr = new Document()
+  public Document newUser(User user) {
+    Document times = new Document()
         .append("start", user.start)
         .append("end", user.end)
         .append("days", user.days);
-    Document st = new Document()
+    Document subtimes = new Document()
         .append("suboptimal_start", user.substart)
         .append("suboptimal_end", user.subend)
         .append("suboptimal_days", user.subdays);
-    Document sampleDoc = new Document("email", user.email)
+    Document userDoc = new Document("email", user.email)
         .append("access_token", user.access_token)
         .append("refresh_token", user.refresh_token)
         .append("expires_at", user.expires_at)
@@ -204,9 +94,11 @@ public class DatabaseManager {
         .append("token_type", user.token_type)
         .append("timezone", user.timezone)
         .append("calendar_id", user.calendar_id)
-        .append("preferred_timerange", tr)
-        .append("suboptimal_timerange", st);
-    return sampleDoc;
+        .append("preferred_timerange", times)
+        .append("suboptimal_timerange", subtimes);
+
+    collection.insertOne(userDoc);
+    return userDoc;
   }
 
   public static Document newcurrentUser(currentUser user) {
@@ -226,21 +118,7 @@ public class DatabaseManager {
     return sampleDoc;
   }
 
-  public static Document meetingMgr(MongoCollection collection, User user) {
-
-    Bson projectionFields = Projections.fields(
-        Projections.include("email", "timezone", "calendar_id",
-            "preferred_timerange", "start", "end", "days",
-            "suboptimal_timerange", "suboptimal_start",
-            "suboptimal_end", "suboptimal_days"),
-        Projections.excludeId());
-    Document doc = (Document) collection.find(eq("email", user.email))
-        .projection(projectionFields)
-        .first();
-    return doc;
-  }
-
-  public static Document fetchUser(MongoCollection collection, String email) {
+  public Document fetchUser(String email) {
 
     Bson projectionFields = Projections.fields(
         Projections.include(
@@ -273,7 +151,6 @@ public class DatabaseManager {
   }
 
   public static void deleteUser(MongoCollection collection, User user) {
-
     Bson query = eq("email", user.email);
     collection.deleteOne(query);
   }

@@ -2,11 +2,8 @@ package com.jetlagjelly.backend;
 
 import static com.jetlagjelly.backend.CalendarQuickstart.events;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.*;
-import static com.jetlagjelly.backend.models.MeetingTimes.*;
+import com.jetlagjelly.backend.models.*;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
@@ -16,9 +13,7 @@ import com.google.api.client.http.HttpRequestFactory;
 import com.google.api.client.http.HttpResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.jetlagjelly.backend.controllers.AuthorizationManager;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
@@ -27,7 +22,6 @@ import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -43,7 +37,7 @@ import org.springframework.web.servlet.view.RedirectView;
 @RestController
 public class Endpoints {
 
-  public static MongoCollection collection = new DatabaseManager().collection;
+  public static DatabaseManager db = new DatabaseManager();
   public static Dotenv dotenv = Dotenv.load();
 
   @RequestMapping(method = RequestMethod.GET, value = "/email")
@@ -82,7 +76,7 @@ public class Endpoints {
     MeetingTimes mt = new MeetingTimes();
 
     for (String s : emailList) {
-      Document d = fetchUser(collection, s);
+      Document d = db.fetchUser(s);
 
       // Add user to not found list if email is not in database, and skip email
       if (d == null) {
@@ -91,15 +85,15 @@ public class Endpoints {
       }
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
-      DatabaseManager.User user = new DatabaseManager.User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
+      User user = new User(
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
       for (int c = 0; c < j; c++) {
         ArrayList<ArrayList<Long>> a = new ArrayList<>();
         ArrayList<ArrayList<Long>> b = new ArrayList<>();
@@ -130,7 +124,6 @@ public class Endpoints {
         }
       }
     }
-
 
     if (notFound.size() > 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -216,7 +209,7 @@ public class Endpoints {
                 .append("suboptimal_end", s_end)
                 .append("suboptimal_days", s_days));
 
-    Document user = fetchUser(collection, email);
+    Document user = db.fetchUser(email);
 
     if (user == null) {
       collection.insertOne(newUser);
@@ -374,7 +367,7 @@ public class Endpoints {
 
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
   public static DatabaseManager.currentUser currentUser(@RequestParam(value = "email") String email) {
-    Document d = fetchUser(collection, email);
+    Document d = db.fetchUser(email);
 
     if (d == null) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");

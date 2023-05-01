@@ -21,13 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 
-import static com.jetlagjelly.backend.CalendarQuickstart.events;
-import static com.jetlagjelly.backend.Endpoints.mc;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.fetchUser;
-
 public class TimeContraint {
-    public static void main(String[] args) throws GeneralSecurityException, IOException, DotenvException, ExceptionInInitializerError {
+    public static MongoCollection<Document> collection = new DatabaseManager().collection;
+
+    public static void main(String[] args)
+            throws GeneralSecurityException, IOException, DotenvException, ExceptionInInitializerError {
 
         MongoClient client = MongoClients.create("mongodb://localhost:27017/");
         MongoDatabase db = client.getDatabase("JetLagJelly");
@@ -89,7 +87,7 @@ public class TimeContraint {
         List<Double> se = new ArrayList<>();
         se.add(8.00);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
+        User user = new User("bmclean2@oswego.edu", "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
                 "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer", -5,
                 cida, sta, ena, dyya, ss, se, sda);
 
@@ -115,10 +113,9 @@ public class TimeContraint {
         ArrayList<ArrayList<Long>> b = new ArrayList<>();
         ArrayList<String> notFound = new ArrayList<>();
 
-
-            for (int c = 0; c < j; c++) {
-                a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred", c));
-            }
+        for (int c = 0; c < j; c++) {
+            a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred", c));
+        }
         System.out.println(a);
 
     }
