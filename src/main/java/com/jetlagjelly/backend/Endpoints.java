@@ -95,6 +95,12 @@ public class Endpoints {
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
+
+      // Add user to not found list if email is not in database, and skip email
+      if (d == null) {
+        notFound.add(s);
+        continue;
+      }
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
@@ -107,8 +113,8 @@ public class Endpoints {
               (List<Double>) st.get("suboptimal_end"),
               (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
+      a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
-
 
     if (notFound.size() < 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -137,6 +143,7 @@ public class Endpoints {
       }
     }
 
+    // Remove times that are shorter than specified meeting length
     for (int i = 0; i < mt.startTimes.size(); i++) {
       long difference = mt.endTimes.get(i) - mt.startTimes.get(i);
 
@@ -181,6 +188,7 @@ public class Endpoints {
             .newAuthorizationUrl()
             .setRedirectUri(REDIRECT_URL)
             .setAccessType("offline");
+
     return new RedirectView(url.toString());
   }
 
