@@ -124,7 +124,6 @@ public class CalendarQuickstart {
                     Date endate = new Date(mc.getEndDay());
                     DateTime en = new DateTime(endate);
                     Events events = service.events().list(calendarID)
-                            .setTimeMax(en)
                             .setTimeMin(st)
                             .setTimeMax(en)
                             .setOrderBy("startTime")

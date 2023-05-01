@@ -114,7 +114,7 @@ public class Endpoints {
           (List<Double>) st.get("suboptimal_end"),
           (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
-      a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
+      b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
 
     if (notFound.size() < 0) {
