@@ -283,9 +283,9 @@ public class Endpoints {
     // add time range for user in db
     Document query = new Document("email", email);
     String whichRange = type + "_timerange";
-    Document update = new Document("$push", new Document(whichRange + ".start", start)
-        .append(whichRange + ".end", end)
-        .append(whichRange + ".days", days));
+    Document update = new Document("$push", new Document(whichRange + ".suboptimal_start", start)
+        .append(whichRange + ".suboptimal_end", end)
+        .append(whichRange + ".suboptimal_days", days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
   }
