@@ -88,18 +88,18 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       User user = new User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
-        a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
-        b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", j));
-        a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
-        b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("start"),
+          (List<Double>) st.get("end"),
+          (List<List<Boolean>>) st.get("days"));
+      a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
+      b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", j));
+      a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
+      b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
     }
     ArrayList<Long> p = mm.intersectMany(a);
     // System.out.println(p);
@@ -202,9 +202,9 @@ public class Endpoints {
             .append("end", p_end)
             .append("days", p_days))
         .append("suboptimal_timerange",
-            new Document("suboptimal_start", s_start)
-                .append("suboptimal_end", s_end)
-                .append("suboptimal_days", s_days));
+            new Document("start", s_start)
+                .append("end", s_end)
+                .append("days", s_days));
 
     Document user = db.fetchUser(email);
 
@@ -243,16 +243,9 @@ public class Endpoints {
     // add time range for user in db
     Document query = new Document("email", email);
     String whichRange = type + "_timerange";
-    Document update = new Document();
-    if (type.equals("suboptimal")) {
-      update = new Document("$push", new Document(whichRange + "." + type + "_start", start)
-          .append(whichRange + "." + type + "_end", end)
-          .append(whichRange + "." + type + "_days", days));
-    } else {
-      update = new Document("$push", new Document(whichRange + ".start", start)
-          .append(whichRange + ".end", end)
-          .append(whichRange + ".days", days));
-    }
+    Document update = new Document("$push", new Document(whichRange + ".start", start)
+        .append(whichRange + ".end", end)
+        .append(whichRange + ".days", days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
   }
@@ -268,28 +261,10 @@ public class Endpoints {
     String whichRange = type + "_timerange";
 
     Document query = new Document("email", email);
-    Document update = new Document();
-    if (type.equals("suboptimal")) {
-      update = new Document("$set", new Document(whichRange + "." + type + "_start"
-          + "." + index,
-          start)
-          .append(whichRange + "." + type + "_end"
-              + "." + index,
-              end)
-          .append(whichRange + "." + type + "_days"
-              + "." + index,
-              days));
-    } else {
-      update = new Document("$set", new Document(whichRange + ".start"
-          + "." + index,
-          start)
-          .append(whichRange + ".end"
-              + "." + index,
-              end)
-          .append(whichRange + ".days"
-              + "." + index,
-              days));
-    }
+    Document update = new Document("$set",
+        new Document(whichRange + ".start" + "." + index, start)
+            .append(whichRange + ".end" + "." + index, end)
+            .append(whichRange + ".days" + "." + index, days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range updated!");
   }
@@ -301,43 +276,20 @@ public class Endpoints {
     // remove time range for user in db
     String whichRange = type + "_timerange";
 
-    if (type.equals("suboptimal")) {
-      Document query = new Document("email", email);
-      Document updatestart = new Document(
-          "$unset", new Document(whichRange + "." + type + "_start." + index, null));
-      Document updateend = new Document(
-          "$unset", new Document(whichRange + "." + type + "_end." + index, null));
-      Document updatedays = new Document(
-          "$unset", new Document(whichRange + "." + type + "_days." + index, null));
-      collection.updateOne(query, updatestart);
-      collection.updateOne(query, updateend);
-      collection.updateOne(query, updatedays);
+    Document query = new Document("email", email);
+    Document updatestart = new Document("$unset", new Document(whichRange + ".start." + index, null));
+    Document updateend = new Document("$unset", new Document(whichRange + ".end." + index, null));
+    Document updatedays = new Document("$unset", new Document(whichRange + ".days." + index, null));
+    collection.updateOne(query, updatestart);
+    collection.updateOne(query, updateend);
+    collection.updateOne(query, updatedays);
 
-      Document removeNullStart = new Document("$pull", new Document(whichRange + "." + type + "_start", null));
-      Document removeNullEnd = new Document("$pull", new Document(whichRange + "." + type + "_end", null));
-      Document removeNullDays = new Document("$pull", new Document(whichRange + "." + type + "_days", null));
-      collection.updateOne(query, removeNullStart);
-      collection.updateOne(query, removeNullEnd);
-      collection.updateOne(query, removeNullDays);
-    } else {
-      Document query = new Document("email", email);
-      Document updatestart = new Document(
-          "$unset", new Document(whichRange + ".start." + index, null));
-      Document updateend = new Document(
-          "$unset", new Document(whichRange + ".end." + index, null));
-      Document updatedays = new Document(
-          "$unset", new Document(whichRange + ".days." + index, null));
-      collection.updateOne(query, updatestart);
-      collection.updateOne(query, updateend);
-      collection.updateOne(query, updatedays);
-
-      Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
-      Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
-      Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
-      collection.updateOne(query, removeNullStart);
-      collection.updateOne(query, removeNullEnd);
-      collection.updateOne(query, removeNullDays);
-    }
+    Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
+    Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
+    Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
+    collection.updateOne(query, removeNullStart);
+    collection.updateOne(query, removeNullEnd);
+    collection.updateOne(query, removeNullDays);
     return ResponseEntity.ok("Time range removed!");
   }
 
@@ -376,9 +328,9 @@ public class Endpoints {
         email, Double.valueOf(d.getString("timezone")),
         (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
         (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-        (List<Double>) st.get("suboptimal_start"),
-        (List<Double>) st.get("suboptimal_end"),
-        (List<List<Boolean>>) st.get("suboptimal_days"));
+        (List<Double>) st.get("start"),
+        (List<Double>) st.get("end"),
+        (List<List<Boolean>>) st.get("days"));
 
     return user;
   }
