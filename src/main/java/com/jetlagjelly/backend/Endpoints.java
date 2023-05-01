@@ -194,10 +194,6 @@ public class Endpoints {
 
     Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
 
-    JsonObject jsonResponse = new JsonObject();
-    jsonResponse.addProperty("access_token", tokenResponse.getAccessToken());
-    jsonResponse.addProperty("email", payload.getEmail());
-
     // Default Configuration
     List<String> scope = Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/calendar");
@@ -228,7 +224,7 @@ public class Endpoints {
 
     Document query = new Document("email", email);
     collection.updateOne(query, newUser);
-    return jsonResponse.toString();
+    return "Authorization Success! You may now close this window.";
 
     // make an account with the email, add it to the db
     // try to make email and access token a string to just pass into the mongo
