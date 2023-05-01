@@ -93,20 +93,25 @@ public class Endpoints {
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
+
+      // Add user to not found list if email is not in database, and skip email
+      if (d == null) {
+        notFound.add(s);
+        continue;
+      }
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
-
 
     if (notFound.size() < 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -135,6 +140,25 @@ public class Endpoints {
       }
     }
 
+    // Remove times that are shorter than specified meeting length
+    for (int i = 0; i < mt.startTimes.size(); i++) {
+      long difference = mt.endTimes.get(i) - mt.startTimes.get(i);
+
+      if (difference < 1000 * 60 * mc.getMtngLength()) {
+        mt.startTimes.remove(i);
+        mt.endTimes.remove(i);
+      }
+    }
+
+    for (int i = 0; i < mt.subStartTimes.size(); i++) {
+      long difference = mt.subEndTimes.get(i) - mt.subStartTimes.get(i);
+
+      if (difference > 1000 * 60 * mc.getMtngLength()) {
+        mt.subStartTimes.remove(i);
+        mt.subEndTimes.remove(i);
+      }
+    }
+
     System.out.println("startTimes:  " + mt.startTimes);
     System.out.println("endTimes:  " + mt.endTimes);
 
@@ -157,7 +181,10 @@ public class Endpoints {
         .build();
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
-    GoogleAuthorizationCodeRequestUrl url = flow.newAuthorizationUrl().setRedirectUri(REDIRECT_URL);
+    GoogleAuthorizationCodeRequestUrl url = flow
+        .newAuthorizationUrl()
+        .setRedirectUri(REDIRECT_URL)
+        .setAccessType("offline");
 
     return new RedirectView(url.toString());
   }
