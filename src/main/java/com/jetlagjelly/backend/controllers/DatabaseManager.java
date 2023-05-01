@@ -83,9 +83,9 @@ public class DatabaseManager {
         .append("end", user.end)
         .append("days", user.days);
     Document subtimes = new Document()
-        .append("suboptimal_start", user.substart)
-        .append("suboptimal_end", user.subend)
-        .append("suboptimal_days", user.subdays);
+        .append("start", user.substart)
+        .append("end", user.subend)
+        .append("days", user.subdays);
     Document userDoc = new Document("email", user.email)
         .append("access_token", user.access_token)
         .append("refresh_token", user.refresh_token)
@@ -107,9 +107,9 @@ public class DatabaseManager {
         .append("end", user.end)
         .append("days", user.days);
     Document st = new Document()
-        .append("suboptimal_start", user.substart)
-        .append("suboptimal_end", user.subend)
-        .append("suboptimal_days", user.subdays);
+        .append("start", user.substart)
+        .append("end", user.subend)
+        .append("days", user.subdays);
     Document sampleDoc = new Document("email", user.email)
         .append("timezone", user.timezone)
         .append("calendar_id", user.calendar_id)
@@ -124,8 +124,7 @@ public class DatabaseManager {
         Projections.include(
             "email", "access_token", "refresh_token", "expires_at", "scope",
             "token_type", "timezone", "calendar_id", "preferred_timerange",
-            "start", "end", "days", "suboptimal_timerange", "suboptimal_start",
-            "suboptimal_end", "suboptimal_days"),
+            "start", "end", "days", "suboptimal_timerange"),
         Projections.excludeId());
     Document doc = (Document) collection.find(eq("email", email))
         .projection(projectionFields)
@@ -141,8 +140,7 @@ public class DatabaseManager {
     Bson projectionFields = Projections.fields(
         Projections.include("email", "timezone", "calendar_id",
             "preferred_timerange", "start", "end", "days",
-            "suboptimal_timerange", "suboptimal_start",
-            "suboptimal_end", "suboptimal_days"),
+            "suboptimal_timerange"),
         Projections.excludeId());
     Document doc = (Document) collection.find(eq("email", email))
         .projection(projectionFields)
@@ -243,15 +241,15 @@ public class DatabaseManager {
             day.add(DayOfWeek.of(usedDays.get(i)));
             dbDay.add(DayOfWeek.of(usedDays.get(i)));
             LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
-                    mc.getStartDay(), user, y);
+                mc.getStartDay(), user, y);
             LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
-                    mc.getStartDay(), user, y);
+                mc.getStartDay(), user, y);
             ZonedDateTime zdtstart = ZonedDateTime.of(
-                    start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
+                start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
             long startTime = zdtstart.toInstant().toEpochMilli();
 
             ZonedDateTime zdtend = ZonedDateTime.of(
-                    end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
+                end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
             long endTime = zdtend.toInstant().toEpochMilli();
 
             ranges.add(startTime);
