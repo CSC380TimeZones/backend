@@ -1,16 +1,17 @@
 package com.jetlagjelly.backend;
 
-import org.bson.Document;
-import org.junit.jupiter.api.Test;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.deleteUser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.jetlagjelly.backend.Endpoints.mc;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.deleteUser;
+import org.bson.Document;
+import org.junit.jupiter.api.Test;
+
 import com.jetlagjelly.backend.controllers.DatabaseManager;
-import static org.junit.jupiter.api.Assertions.*;
+import com.jetlagjelly.backend.models.MeetingContraint;
 
 class DatabaseManagerTest {
     public static DatabaseManager.User constants() {
@@ -94,7 +95,7 @@ class DatabaseManagerTest {
 
         document = DatabaseManager.fetchUser(collection, "bmclean2@oswego.edu");
 
-        //assertEquals(user.calendar_id, document.get("calendar_id"));
+        // assertEquals(user.calendar_id, document.get("calendar_id"));
     }
 
     @Test
@@ -126,6 +127,13 @@ class DatabaseManagerTest {
     @Test
     void concreteUser() {
         DatabaseManager.User user = constants();
+        MeetingContraint mc = new MeetingContraint()
+                .setEmail(user.email)
+                .setStartDay(1682918097289l)
+                .setEndDay(1683522897291l)
+                .setMtngLength(60)
+                .setSubEndDay(1682918097289l)
+                .setSubEndDay(1683522897291l);
 
         System.out.println(DatabaseManager.concreteTime(user, mc, "preferred", 0));
     }

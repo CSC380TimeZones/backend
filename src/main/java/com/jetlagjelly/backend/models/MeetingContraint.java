@@ -13,47 +13,53 @@ public class MeetingContraint {
         return email;
     }
 
-    public void setEmail(String email) {
+    public MeetingContraint setEmail(String email) {
         this.email = email;
+        return this;
     }
 
     public int getMtngLength() {
         return mtngLength;
     }
 
-    public void setMtngLength(int mtngLength) {
+    public MeetingContraint setMtngLength(int mtngLength) {
         this.mtngLength = mtngLength;
+        return this;
     }
 
     public Long getStartDay() {
         return startDay;
     }
 
-    public void setStartDay(Long startDay) {
+    public MeetingContraint setStartDay(Long startDay) {
         this.startDay = startDay;
+        return this;
     }
 
     public Long getEndDay() {
         return endDay;
     }
 
-    public void setEndDay(Long endDay) {
+    public MeetingContraint setEndDay(Long endDay) {
         this.endDay = endDay;
+        return this;
     }
 
     public Long getSubStartDay() {
         return subStartDay;
     }
 
-    public void setSubStartDay(Long subStartDay) {
+    public MeetingContraint setSubStartDay(Long subStartDay) {
         this.subStartDay = subStartDay;
+        return this;
     }
 
     public Long getSubEndDay() {
         return subEndDay;
     }
 
-    public void setSubEndDay(Long subEndDay) {
+    public MeetingContraint setSubEndDay(Long subEndDay) {
         this.subEndDay = subEndDay;
+        return this;
     }
 }

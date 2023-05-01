@@ -5,7 +5,7 @@ import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Setting;
-
+import com.jetlagjelly.backend.models.MeetingContraint;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
@@ -27,8 +27,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
 import java.util.*;
-
-import static com.jetlagjelly.backend.Endpoints.mc;
 
 /* class to demonstarte use of Calendar events list API */
 public class CalendarQuickstart {
@@ -80,7 +78,8 @@ public class CalendarQuickstart {
         return credential;
     }
 
-    public static ArrayList<Long> events(String token, ArrayList<String> requiredCalendarIDs) throws IOException, GeneralSecurityException {
+    public static ArrayList<Long> events(String token, ArrayList<String> requiredCalendarIDs, MeetingContraint mc)
+            throws IOException, GeneralSecurityException {
         Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod()).setAccessToken(token);
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
 

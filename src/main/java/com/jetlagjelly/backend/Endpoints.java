@@ -43,7 +43,6 @@ import org.springframework.web.servlet.view.RedirectView;
 @RestController
 public class Endpoints {
 
-  public static MeetingContraint mc = new MeetingContraint();
   public static MongoCollection collection = new DatabaseManager().collection;
   public static Dotenv dotenv = Dotenv.load();
 
@@ -54,6 +53,8 @@ public class Endpoints {
       @RequestParam(value = "startDay", defaultValue = "100000000000") Long startDay,
       @RequestParam(value = "endDay", defaultValue = "1000000000") Long endDay)
       throws GeneralSecurityException, IOException {
+
+    MeetingContraint mc = new MeetingContraint();
 
     mc.setEmail(email);
     mc.setMtngLength(mtngLength);
@@ -104,8 +105,8 @@ public class Endpoints {
         ArrayList<ArrayList<Long>> b = new ArrayList<>();
         a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", c));
         b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", c));
-        a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
-        b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
+        a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
+        b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
 
         ArrayList<Long> p = mm.intersectMany(a);
         // System.out.println(p);
@@ -129,6 +130,7 @@ public class Endpoints {
         }
       }
     }
+
 
     if (notFound.size() > 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,

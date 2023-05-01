@@ -1,6 +1,5 @@
 package com.jetlagjelly.backend.controllers;
 
-import static com.jetlagjelly.backend.Endpoints.mc;
 import static com.mongodb.client.model.Filters.eq;
 
 import com.jetlagjelly.backend.models.MeetingContraint;
@@ -22,7 +21,6 @@ import javax.mail.Transport;
 import javax.mail.internet.*;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.springframework.data.mongodb.core.index.Index;
 
 public class DatabaseManager {
 
@@ -380,28 +378,28 @@ public class DatabaseManager {
     List<DayOfWeek> dbDay = new ArrayList<>();
     List<Integer> usedDays = new ArrayList<>();
     if (type.equals("preferred")) {
-    for (int j = 0; j < user.days.size(); j++) {
-      usedDays = getTimeRangeDays(user.days.get(j));
-      for (int i = 0; i < usedDays.size(); i++) {
-        day.add(DayOfWeek.of(usedDays.get(i)));
-        dbDay.add(DayOfWeek.of(usedDays.get(i)));
-        LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
-            mc.getStartDay(), user, weekAdvance);
-        LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
-            mc.getStartDay(), user, weekAdvance);
-        ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
-        long startTime = zdtstart.toInstant().toEpochMilli();
+      for (int j = 0; j < user.days.size(); j++) {
+        usedDays = getTimeRangeDays(user.days.get(j));
+        for (int i = 0; i < usedDays.size(); i++) {
+          day.add(DayOfWeek.of(usedDays.get(i)));
+          dbDay.add(DayOfWeek.of(usedDays.get(i)));
+          LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
+              mc.getStartDay(), user, weekAdvance);
+          LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
+              mc.getStartDay(), user, weekAdvance);
+          ZonedDateTime zdtstart = ZonedDateTime.of(
+              start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+          long startTime = zdtstart.toInstant().toEpochMilli();
 
-        ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
-        long endTime = zdtend.toInstant().toEpochMilli();
+          ZonedDateTime zdtend = ZonedDateTime.of(
+              end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+          long endTime = zdtend.toInstant().toEpochMilli();
 
-        ranges.add(startTime);
-        ranges.add(endTime);
-        dbDay.remove(DayOfWeek.of(usedDays.get(i)));
+          ranges.add(startTime);
+          ranges.add(endTime);
+          dbDay.remove(DayOfWeek.of(usedDays.get(i)));
+        }
       }
-    }
     } else {
       for (int j = 0; j < user.subdays.size(); j++) {
         usedDays = getTimeRangeDays(user.subdays.get(j));
@@ -409,15 +407,15 @@ public class DatabaseManager {
           day.add(DayOfWeek.of(usedDays.get(i)));
           dbDay.add(DayOfWeek.of(usedDays.get(i)));
           LocalDateTime start = getNextClosestDateTime(
-                  dbDay, user.substart.get(j), mc.getStartDay(), user, weekAdvance);
+              dbDay, user.substart.get(j), mc.getStartDay(), user, weekAdvance);
           LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
-                  mc.getStartDay(), user, weekAdvance);
+              mc.getStartDay(), user, weekAdvance);
           ZonedDateTime zdtstart = ZonedDateTime.of(
-                  start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+              start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
           long startTime = zdtstart.toInstant().toEpochMilli();
 
           ZonedDateTime zdtend = ZonedDateTime.of(
-                  end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+              end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
           long endTime = zdtend.toInstant().toEpochMilli();
 
           ranges.add(startTime);
