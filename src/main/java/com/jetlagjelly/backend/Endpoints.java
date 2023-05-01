@@ -206,7 +206,7 @@ public class Endpoints {
     List<List<Boolean>> s_days = Arrays.asList(
         Arrays.asList(true, false, false, false, false, false, true));
     String email = payload.getEmail();
-    Document newUser = new Document("$set", new Document("email", email)
+    Document newUser = new Document("email", email)
         .append("access_token", tokenResponse.getAccessToken())
         .append("refresh_token", tokenResponse.getRefreshToken())
         .append("expires_at", tokenResponse.getExpiresInSeconds())
@@ -220,10 +220,15 @@ public class Endpoints {
         .append("suboptimal_timerange",
             new Document("suboptimal_start", s_start)
                 .append("suboptimal_end", s_end)
-                .append("suboptimal_days", s_days)));
+                .append("suboptimal_days", s_days));
 
-    Document query = new Document("email", email);
-    collection.updateOne(query, newUser);
+    Document user = fetchUser(collection, email);
+
+    if (user == null) {
+      collection.insertOne(newUser);
+    } else {
+      collection.updateOne(user, new Document("$set", newUser));
+    }
     return "Authorization Success! You may now close this window.";
 
     // make an account with the email, add it to the db
