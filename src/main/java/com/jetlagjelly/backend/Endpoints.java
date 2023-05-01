@@ -42,9 +42,6 @@ import org.springframework.web.servlet.view.RedirectView;
 @RestController
 public class Endpoints {
 
-  public static MeetingContraint mc = new MeetingContraint();
-  public static MeetingContraint mc2 = new MeetingContraint();
-
   public static MongoCollection collection = new DatabaseManager().collection;
   public static Dotenv dotenv = Dotenv.load();
 
@@ -55,6 +52,8 @@ public class Endpoints {
       @RequestParam(value = "startDay", defaultValue = "100000000000") Long startDay,
       @RequestParam(value = "endDay", defaultValue = "1000000000") Long endDay)
       throws GeneralSecurityException, IOException {
+
+    MeetingContraint mc = new MeetingContraint();
 
     mc.setEmail(email);
     mc.setMtngLength(mtngLength);
@@ -121,8 +120,8 @@ public class Endpoints {
           (List<Double>) st.get("suboptimal_start"),
           (List<Double>) st.get("suboptimal_end"),
           (List<List<Boolean>>) st.get("suboptimal_days"));
-      a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
-      b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
+      a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
+      b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
     }
 
     if (notFound.size() > 0) {
