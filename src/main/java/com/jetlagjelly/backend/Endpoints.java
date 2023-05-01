@@ -42,8 +42,6 @@ import org.springframework.web.servlet.view.RedirectView;
 @RestController
 public class Endpoints {
 
-  private String CLIENT_ID = "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
-  private String CLIENT_SECRET = "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";
   public static MeetingContraint mc = new MeetingContraint();
   public static MeetingContraint mc2 = new MeetingContraint();
 
@@ -192,15 +190,10 @@ public class Endpoints {
   public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException {
     GoogleTokenResponse tokenResponse = AuthorizationManager.getTokenFromCode(authorizationCode);
 
-    HttpTransport httpTransport = new NetHttpTransport();
-    GoogleCredential credential = new GoogleCredential.Builder()
-        .setTransport(httpTransport)
-        .setJsonFactory(new GsonFactory())
-        .setClientSecrets(CLIENT_ID, CLIENT_SECRET)
-        .build();
-
+    GoogleCredential credential = AuthorizationManager.getCredential();
     credential.setAccessToken(tokenResponse.getAccessToken());
 
+    HttpTransport httpTransport = new NetHttpTransport();
     HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
     GenericUrl url = new GenericUrl(
         "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" +

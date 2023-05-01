@@ -10,6 +10,7 @@ import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleRefreshTokenRequest;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
@@ -87,6 +88,21 @@ public class AuthorizationManager {
       }
     }
     return null;
+  }
+
+  public static GoogleCredential getCredential() {
+    JsonObject credentials = getCredentials();
+
+    HttpTransport httpTransport = new NetHttpTransport();
+    GoogleCredential credential = new GoogleCredential.Builder()
+        .setTransport(httpTransport)
+        .setJsonFactory(new GsonFactory())
+        .setClientSecrets(
+
+            credentials.get("client_id").getAsString(),
+            credentials.get("client_secret").getAsString())
+        .build();
+    return credential;
   }
 
   private static JsonObject getCredentials() {
