@@ -1,7 +1,5 @@
 package com.jetlagjelly.backend;
 
-import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.deleteUser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
@@ -11,10 +9,12 @@ import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
 import com.jetlagjelly.backend.controllers.DatabaseManager;
-import com.jetlagjelly.backend.models.MeetingContraint;
+import com.jetlagjelly.backend.models.*;
 
 class DatabaseManagerTest {
-    public static DatabaseManager.User constants() {
+    public static DatabaseManager db = new DatabaseManager();
+
+    public static User constants() {
         List<String> sca = new ArrayList<>();
         sca.add("create");
         List<String> cida = new ArrayList<>();
@@ -60,7 +60,7 @@ class DatabaseManagerTest {
         List<Double> se = new ArrayList<>();
         se.add(8.00);
 
-        DatabaseManager.User user = new DatabaseManager.User("bmclean2@oswego.edu",
+        User user = new User("bmclean2@oswego.edu",
                 "MTQ0NjJkZmQ5OTM2NDE1ZTZjNGZmZjI3",
                 "IwOGYzYTlmM2YxOTQ5MGE3YmNmMDFkNTVk", 3600L, sca, "Bearer",
                 -5, cida, sta, ena, dyya, ss,
@@ -71,62 +71,26 @@ class DatabaseManagerTest {
 
     @Test
     void newUser() {
-        DatabaseManager.User user = constants();
-        Document document;
-        document = DatabaseManager.newUser(user);
-        collection.insertOne(document);
+        User user = constants();
+        db.newUser(user);
     }
 
     @Test
     void meetingMgr() {
-        DatabaseManager.User user = constants();
-        Document document;
-
-        document = DatabaseManager.meetingMgr(collection, user);
-
+        User user = constants();
+        Document document = db.fetchUser(user.email);
         assertEquals("America/New_York", document.get("timezone"));
     }
 
     @Test
     void fetchUser() {
-
-        DatabaseManager.User user = constants();
-        Document document;
-
-        document = DatabaseManager.fetchUser(collection, "bmclean2@oswego.edu");
-
+        Document document = db.fetchUser("bmclean2@oswego.edu");
         // assertEquals(user.calendar_id, document.get("calendar_id"));
     }
 
     @Test
-    void tokens() {
-
-        DatabaseManager.User user = constants();
-        Document document;
-
-        document = DatabaseManager.tokens(user);
-
-        assertEquals(user.access_token, document.get("token"));
-
-    }
-
-    @Test
-    void setTimezone() {
-
-        DatabaseManager.User user = constants();
-        Document document;
-
-        DatabaseManager.setTimezone(user, -4);
-        document = DatabaseManager.newUser(user);
-        deleteUser(collection, user);
-        collection.insertOne(document);
-
-        assertEquals("Europe/Malta", user.timezone);
-    }
-
-    @Test
     void concreteUser() {
-        DatabaseManager.User user = constants();
+        User user = constants();
         MeetingContraint mc = new MeetingContraint()
                 .setEmail(user.email)
                 .setStartDay(1682918097289l)

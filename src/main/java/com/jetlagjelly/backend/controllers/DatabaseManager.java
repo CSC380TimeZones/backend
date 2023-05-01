@@ -150,34 +150,15 @@ public class DatabaseManager {
     return doc;
   }
 
-  public static void deleteUser(MongoCollection collection, User user) {
+  public void deleteUser(User user) {
     Bson query = eq("email", user.email);
     collection.deleteOne(query);
   }
 
-  public static Document tokens(User user) {
-    Document accessToken = new Document()
-        .append("token", user.access_token)
-        .append("type", user.token_type)
-        .append("expires_at", user.expires_at)
-        .append("scope", user.scope)
-        .append("refreshToken", user.refresh_token);
-
-    return accessToken;
-  }
-
-  public static void setTimezone(User user, double tz) {
-    user.timezone = tz;
-  }
-
-  public static void updateTokens(User user, String access_token,
-      Long expires_at, String refresh_token,
-      List<String> scope, String token_type) {
-    user.access_token = access_token;
-    user.expires_at = expires_at;
-    user.refresh_token = refresh_token;
-    user.scope = scope;
-    user.token_type = token_type;
+  public void setTimezone(String email, double tz) {
+    Document query = new Document("email", email);
+    Document update = new Document("$set", new Document("timezone", tz));
+    collection.updateOne(query, update);
   }
 
   public static void addCalendar(User user, String id) {
