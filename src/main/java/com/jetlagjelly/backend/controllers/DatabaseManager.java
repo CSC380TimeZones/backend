@@ -373,13 +373,13 @@ public class DatabaseManager {
     return usedDays;
   }
 
-  public static List<Long> concreteTime(User user, MeetingContraint mc) {
+  public static List<Long> concreteTime(User user, MeetingContraint mc, String type) {
     List<Long> ranges = new ArrayList<>();
     List<DayOfWeek> day = new ArrayList<>();
     List<DayOfWeek> unusedDay = new ArrayList<>();
     List<DayOfWeek> dbDay = new ArrayList<>();
     List<Integer> usedDays = new ArrayList<>();
-
+    if (type.equals("preferred")) {
     for (int j = 0; j < user.days.size(); j++) {
       usedDays = getTimeRangeDays(user.days.get(j));
       for (int i = 0; i < usedDays.size(); i++) {
@@ -402,7 +402,30 @@ public class DatabaseManager {
         dbDay.remove(DayOfWeek.of(usedDays.get(i)));
       }
     }
+    } else {
+      for (int j = 0; j < user.subdays.size(); j++) {
+        usedDays = getTimeRangeDays(user.subdays.get(j));
+        for (int i = 0; i < usedDays.size(); i++) {
+          day.add(DayOfWeek.of(usedDays.get(i)));
+          dbDay.add(DayOfWeek.of(usedDays.get(i)));
+          LocalDateTime start = getNextClosestDateTime(
+                  dbDay, user.substart.get(j), mc.getStartDay(), user);
+          LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
+                  mc.getStartDay(), user);
+          ZonedDateTime zdtstart = ZonedDateTime.of(
+                  start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+          long startTime = zdtstart.toInstant().toEpochMilli();
 
+          ZonedDateTime zdtend = ZonedDateTime.of(
+                  end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+          long endTime = zdtend.toInstant().toEpochMilli();
+
+          ranges.add(startTime);
+          ranges.add(endTime);
+          dbDay.remove(DayOfWeek.of(usedDays.get(i)));
+        }
+      }
+    }
     ArrayList<Interval> intervals = new ArrayList<>();
     ArrayList<Long> blockRanges = new ArrayList<>();
 
@@ -477,54 +500,6 @@ public class DatabaseManager {
     public int compare(Interval i1, Interval i2) {
       return (int) (i1.getStart() - i2.getStart());
     }
-  }
-
-  public static List<Long> concreteSubTime(User user, MeetingContraint mc) {
-    List<Long> subranges = new ArrayList<>();
-    List<DayOfWeek> subday = new ArrayList<>();
-    List<DayOfWeek> subunusedDay = new ArrayList<>();
-    List<DayOfWeek> subdbDay = new ArrayList<>();
-    List<Integer> usedDays = new ArrayList<>();
-
-    for (int j = 0; j < user.subdays.size(); j++) {
-      usedDays = getTimeRangeDays(user.subdays.get(j));
-      for (int i = 0; i < usedDays.size(); i++) {
-        subday.add(DayOfWeek.of(usedDays.get(i)));
-        subdbDay.add(DayOfWeek.of(usedDays.get(i)));
-        LocalDateTime start = getNextClosestDateTime(
-            subdbDay, user.substart.get(j), mc.getStartDay(), user);
-        LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(j),
-            mc.getStartDay(), user);
-        ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
-        long startTime = zdtstart.toInstant().toEpochMilli();
-
-        ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
-        long endTime = zdtend.toInstant().toEpochMilli();
-
-        subranges.add(startTime);
-        subranges.add(endTime);
-        subdbDay.remove(DayOfWeek.of(usedDays.get(i)));
-      }
-    }
-
-    ArrayList<Interval> intervals = new ArrayList<>();
-    ArrayList<Long> subblockRanges = new ArrayList<>();
-
-    for (int i = 0; i < subranges.size(); i = i + 2) {
-      Long a = subranges.get(i);
-      Long b = subranges.get(i + 1);
-      intervals.add(new Interval(a, b));
-    }
-    intervals = merge(intervals);
-
-    for (Interval i : intervals) {
-      subblockRanges.add(i.getStart());
-      subblockRanges.add(i.getEnd());
-    }
-    Collections.sort(subblockRanges);
-    return subblockRanges;
   }
 
   public static LocalDateTime getNextClosestDateTime(List<DayOfWeek> daysOfWeek, double hour,

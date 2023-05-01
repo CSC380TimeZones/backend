@@ -90,8 +90,8 @@ public class Endpoints {
               (List<Double>) st.get("suboptimal_start"),
               (List<Double>) st.get("suboptimal_end"),
               (List<List<Boolean>>) st.get("suboptimal_days"));
-      a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
-      b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
+      a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred"));
+      b.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "suboptimal"));
     }
 
     for (String s : emailList) {

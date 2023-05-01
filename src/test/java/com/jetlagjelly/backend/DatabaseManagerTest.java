@@ -127,6 +127,6 @@ class DatabaseManagerTest {
     void concreteUser() {
         DatabaseManager.User user = constants();
 
-        System.out.println(DatabaseManager.concreteTime(user, mc));
+        System.out.println(DatabaseManager.concreteTime(user, mc, "preferred"));
     }
 }
