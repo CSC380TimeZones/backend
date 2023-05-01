@@ -390,11 +390,11 @@ public class DatabaseManager {
         LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
             mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         ranges.add(startTime);
@@ -496,11 +496,11 @@ public class DatabaseManager {
         LocalDateTime end = getNextClosestDateTime(subdbDay, user.subend.get(j),
             mc.getStartDay(), user);
         ZonedDateTime zdtstart = ZonedDateTime.of(
-            start, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
+            start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
 
         ZonedDateTime zdtend = ZonedDateTime.of(
-            end, ZoneId.ofOffset("UTC", ZoneOffset.ofHours((int) user.timezone)));
+            end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
         long endTime = zdtend.toInstant().toEpochMilli();
 
         subranges.add(startTime);
