@@ -1,7 +1,8 @@
 package com.jetlagjelly.backend;
 
-import static com.jetlagjelly.backend.CalendarQuickstart.events;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.*;
+import static com.jetlagjelly.backend.controllers.MeetingManager.intersectMany;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.concreteTime;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.newcurrentUser;
 import com.jetlagjelly.backend.models.*;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -19,7 +20,6 @@ import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
 import com.jetlagjelly.backend.models.MeetingTimes;
-import com.mongodb.client.MongoCollection;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -38,6 +38,7 @@ import org.springframework.web.servlet.view.RedirectView;
 public class Endpoints {
 
   public static DatabaseManager db = new DatabaseManager();
+  public static MeetingManager mm = new MeetingManager();
   public static Dotenv dotenv = Dotenv.load();
 
   @RequestMapping(method = RequestMethod.GET, value = "/email")
@@ -48,12 +49,11 @@ public class Endpoints {
       @RequestParam(value = "endDay", defaultValue = "1000000000") Long endDay)
       throws GeneralSecurityException, IOException {
 
-    MeetingContraint mc = new MeetingContraint();
-
-    mc.setEmail(email);
-    mc.setMtngLength(mtngLength);
-    mc.setStartDay(startDay);
-    mc.setEndDay(endDay);
+    MeetingContraint mc = new MeetingContraint()
+        .setEmail(email)
+        .setMtngLength(mtngLength)
+        .setStartDay(startDay)
+        .setEndDay(endDay);
 
     LocalDateTime startdate = LocalDateTime.ofInstant(Instant.ofEpochMilli(startDay), TimeZone
         .getDefault().toZoneId());
@@ -67,7 +67,6 @@ public class Endpoints {
       }
     }
 
-    MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
     ArrayList<String> emailList = new ArrayList<>();
     String[] emailArray = ls.split(" ");
@@ -101,7 +100,7 @@ public class Endpoints {
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
       b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
     }
-    ArrayList<Long> p = mm.intersectMany(a);
+    ArrayList<Long> p = intersectMany(a);
     // System.out.println(p);
 
     for (int i = 0; i < p.size(); i++) {
@@ -113,7 +112,7 @@ public class Endpoints {
     }
     // System.out.println(b);
 
-    ArrayList<Long> l = mm.intersectMany(b);
+    ArrayList<Long> l = intersectMany(b);
     for (int i = 0; i < l.size(); i++) {
       if (i % 2 == 1) {
         mt.setSubEndTimes(l.get(i));
@@ -195,23 +194,23 @@ public class Endpoints {
         .append("refresh_token", tokenResponse.getRefreshToken())
         .append("expires_at", tokenResponse.getExpiresInSeconds())
         .append("scope", scope)
-        .append("token_type", tokenResponse.getTokenType())
-        .append("timezone", "0")
-        .append("calendar_id", Arrays.asList(email))
-        .append("preferred_timerange", new Document("start", p_start)
-            .append("end", p_end)
-            .append("days", p_days))
-        .append("suboptimal_timerange",
-            new Document("start", s_start)
-                .append("end", s_end)
-                .append("days", s_days));
+        .append("token_type", tokenResponse.getTokenType());
 
     Document user = db.fetchUser(email);
 
     if (user == null) {
-      collection.insertOne(newUser);
+      newUser.append("timezone", "0")
+          .append("calendar_id", Arrays.asList(email))
+          .append("preferred_timerange", new Document("start", p_start)
+              .append("end", p_end)
+              .append("days", p_days))
+          .append("suboptimal_timerange",
+              new Document("start", s_start)
+                  .append("end", s_end)
+                  .append("days", s_days));
+      db.collection.insertOne(newUser);
     } else {
-      collection.updateOne(user, new Document("$set", newUser));
+      db.collection.updateOne(user, new Document("$set", newUser));
     }
     return "Authorization Success! You may now close this window.";
 
@@ -225,12 +224,10 @@ public class Endpoints {
   }
 
   @PutMapping("/timezone")
-  public static ResponseEntity<String> setTimezone(@RequestParam(value = "email") String email,
+  public static ResponseEntity<String> setTimezone(
+      @RequestParam(value = "email") String email,
       @RequestParam(value = "timezone") String timezone) {
-    // set timezone in db
-    Document query = new Document("email", email);
-    Document update = new Document("$set", new Document("timezone", timezone));
-    collection.updateOne(query, update);
+    db.setTimezone(email, timezone);
     return ResponseEntity.ok("Timezone set!");
   }
 
@@ -246,7 +243,7 @@ public class Endpoints {
     Document update = new Document("$push", new Document(whichRange + ".start", start)
         .append(whichRange + ".end", end)
         .append(whichRange + ".days", days));
-    collection.updateOne(query, update);
+    db.collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
   }
 
@@ -265,7 +262,7 @@ public class Endpoints {
         new Document(whichRange + ".start" + "." + index, start)
             .append(whichRange + ".end" + "." + index, end)
             .append(whichRange + ".days" + "." + index, days));
-    collection.updateOne(query, update);
+    db.collection.updateOne(query, update);
     return ResponseEntity.ok("Time range updated!");
   }
 
@@ -280,16 +277,16 @@ public class Endpoints {
     Document updatestart = new Document("$unset", new Document(whichRange + ".start." + index, null));
     Document updateend = new Document("$unset", new Document(whichRange + ".end." + index, null));
     Document updatedays = new Document("$unset", new Document(whichRange + ".days." + index, null));
-    collection.updateOne(query, updatestart);
-    collection.updateOne(query, updateend);
-    collection.updateOne(query, updatedays);
+    db.collection.updateOne(query, updatestart);
+    db.collection.updateOne(query, updateend);
+    db.collection.updateOne(query, updatedays);
 
     Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
     Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
     Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
-    collection.updateOne(query, removeNullStart);
-    collection.updateOne(query, removeNullEnd);
-    collection.updateOne(query, removeNullDays);
+    db.collection.updateOne(query, removeNullStart);
+    db.collection.updateOne(query, removeNullEnd);
+    db.collection.updateOne(query, removeNullDays);
     return ResponseEntity.ok("Time range removed!");
   }
 
@@ -311,7 +308,7 @@ public class Endpoints {
 
     Document document;
     document = newcurrentUser(user);
-    collection.insertOne(document);
+    db.collection.insertOne(document);
   }
 
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
@@ -346,6 +343,6 @@ public class Endpoints {
     } else {
       update = new Document("$pull", new Document("calendar_id", calendar_id));
     }
-    collection.updateOne(query, update);
+    db.collection.updateOne(query, update);
   }
 }

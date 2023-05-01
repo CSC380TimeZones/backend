@@ -70,12 +70,6 @@ class DatabaseManagerTest {
     }
 
     @Test
-    void newUser() {
-        User user = constants();
-        db.newUser(user);
-    }
-
-    @Test
     void meetingMgr() {
         User user = constants();
         Document document = db.fetchUser(user.email);

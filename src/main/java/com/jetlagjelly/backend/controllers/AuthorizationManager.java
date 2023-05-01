@@ -24,6 +24,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class AuthorizationManager {
   private static Dotenv dotenv = Dotenv.load();
 
+  /**
+   * Creates the URL used to login using Google Oauth
+   */
   public static String getAuthorizationUrl() {
     JsonObject credentials = getCredentials();
     String REDIRECT_URL = dotenv.get("REDIRECT_URL");
@@ -42,11 +45,16 @@ public class AuthorizationManager {
         .setRedirectUri(REDIRECT_URL)
         .setAccessType("offline");
 
-    System.out.println(url.toString());
-
     return url.toString();
   }
 
+  /**
+   * Takes a code from a URL and exchanges it for an access & refresh token
+   * 
+   * @param authorizationCode
+   * @return
+   * @throws IOException
+   */
   public static GoogleTokenResponse getTokenFromCode(String authorizationCode) throws IOException {
     JsonObject credentials = getCredentials();
     String REDIRECT_URL = dotenv.get("REDIRECT_URL");
@@ -62,6 +70,13 @@ public class AuthorizationManager {
     return tokenResponse;
   }
 
+  /**
+   * Takes a refresh token and exchanges it for a new access & refresh token
+   * 
+   * @param refreshToken
+   * @return
+   * @throws IOException
+   */
   public static GoogleTokenResponse refreshToken(String refreshToken) throws IOException {
     JsonObject credentials = getCredentials();
 
@@ -92,6 +107,10 @@ public class AuthorizationManager {
     return null;
   }
 
+  /**
+   * Returns a Google Credential object with the client parameters, which used for
+   * authorizing web requests
+   */
   public static GoogleCredential getCredential() {
     JsonObject credentials = getCredentials();
 
@@ -107,6 +126,10 @@ public class AuthorizationManager {
     return credential;
   }
 
+  /**
+   * Returns the web property of a credential.json file stored at
+   * src/main/resources/credentials.json
+   */
   private static JsonObject getCredentials() {
     String credentialsPath = System.getProperty("user.dir") + "/src/main/resources/credentials.json";
 

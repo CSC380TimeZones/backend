@@ -2,6 +2,7 @@ package com.jetlagjelly.backend.controllers;
 
 import static com.mongodb.client.model.Filters.eq;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.jetlagjelly.backend.models.*;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -77,28 +78,34 @@ public class DatabaseManager {
     }
   }
 
-  public Document newUser(User user) {
-    Document times = new Document()
-        .append("start", user.start)
-        .append("end", user.end)
-        .append("days", user.days);
-    Document subtimes = new Document()
-        .append("start", user.substart)
-        .append("end", user.subend)
-        .append("days", user.subdays);
-    Document userDoc = new Document("email", user.email)
-        .append("access_token", user.access_token)
-        .append("refresh_token", user.refresh_token)
-        .append("expires_at", user.expires_at)
-        .append("scope", user.scope)
-        .append("token_type", user.token_type)
-        .append("timezone", user.timezone)
-        .append("calendar_id", user.calendar_id)
-        .append("preferred_timerange", times)
-        .append("suboptimal_timerange", subtimes);
+  public Document newUser(String email, GoogleTokenResponse tokenResponse) {
 
-    collection.insertOne(userDoc);
-    return userDoc;
+    // Default Configuration
+    String scopeUrl = "https://www.googleapis.com/auth/";
+    List<String> scope = Arrays.asList(scopeUrl + "userinfo.email", scopeUrl + "calendar");
+    List<Double> p_start = Arrays.asList(9d);
+    List<Double> p_end = Arrays.asList(17d);
+    List<List<Boolean>> p_days = Arrays.asList(Arrays.asList(false, true, true, true, true, true, false));
+    List<Double> s_start = Arrays.asList(16d);
+    List<Double> s_end = Arrays.asList(19d);
+    List<List<Boolean>> s_days = Arrays.asList(Arrays.asList(true, false, false, false, false, false, true));
+
+    Document newUser = new Document("email", email)
+        .append("access_token", tokenResponse.getAccessToken())
+        .append("refresh_token", tokenResponse.getRefreshToken())
+        .append("expires_at", tokenResponse.getExpiresInSeconds())
+        .append("scope", scope)
+        .append("token_type", tokenResponse.getTokenType()).append("timezone", "0")
+        .append("calendar_id", Arrays.asList(email))
+        .append("preferred_timerange", new Document("start", p_start)
+            .append("end", p_end)
+            .append("days", p_days))
+        .append("suboptimal_timerange",
+            new Document("start", s_start)
+                .append("end", s_end)
+                .append("days", s_days));
+    collection.insertOne(newUser);
+    return newUser;
   }
 
   public static Document newcurrentUser(currentUser user) {
@@ -119,7 +126,6 @@ public class DatabaseManager {
   }
 
   public Document fetchUser(String email) {
-
     Bson projectionFields = Projections.fields(
         Projections.include(
             "email", "access_token", "refresh_token", "expires_at", "scope",
@@ -153,7 +159,7 @@ public class DatabaseManager {
     collection.deleteOne(query);
   }
 
-  public void setTimezone(String email, double tz) {
+  public void setTimezone(String email, String tz) {
     Document query = new Document("email", email);
     Document update = new Document("$set", new Document("timezone", tz));
     collection.updateOne(query, update);
