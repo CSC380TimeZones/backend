@@ -65,7 +65,7 @@ public class Endpoints {
 
     if(length > 604800000) {
       mc2.setStartDay(startDay + 604800000);
-      mc2.setEndDay(endDay + 604800000);
+      mc2.setEndDay(endDay);
       overWeek = true;
     }
 
@@ -129,7 +129,7 @@ public class Endpoints {
       a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
 
-    if (notFound.size() < 0) {
+    if (notFound.size() > 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "profile not found for:  " + notFound);
     }
