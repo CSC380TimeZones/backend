@@ -77,7 +77,7 @@ public class Endpoints {
     ArrayList<ArrayList<Long>> b = new ArrayList<>();
 
     for (String s : emailList) {
-      Document d = db.fetchUser(s);
+      Document d = db.fetchUser(s, true);
 
       // Add user to not found list if email is not in database, and skip email
       if (d == null) {
@@ -177,17 +177,8 @@ public class Endpoints {
 
     Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
 
-    // Default Configuration
     List<String> scope = Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/calendar");
-    List<Double> p_start = Arrays.asList(9d);
-    List<Double> p_end = Arrays.asList(17d);
-    List<List<Boolean>> p_days = Arrays.asList(
-        Arrays.asList(false, true, true, true, true, true, false));
-    List<Double> s_start = Arrays.asList(16d);
-    List<Double> s_end = Arrays.asList(19d);
-    List<List<Boolean>> s_days = Arrays.asList(
-        Arrays.asList(true, false, false, false, false, false, true));
     String email = payload.getEmail();
     Document newUser = new Document("email", email)
         .append("access_token", tokenResponse.getAccessToken())
@@ -196,19 +187,10 @@ public class Endpoints {
         .append("scope", scope)
         .append("token_type", tokenResponse.getTokenType());
 
-    Document user = db.fetchUser(email);
+    Document user = db.fetchUser(email, true);
 
     if (user == null) {
-      newUser.append("timezone", "0")
-          .append("calendar_id", Arrays.asList(email))
-          .append("preferred_timerange", new Document("start", p_start)
-              .append("end", p_end)
-              .append("days", p_days))
-          .append("suboptimal_timerange",
-              new Document("start", s_start)
-                  .append("end", s_end)
-                  .append("days", s_days));
-      db.collection.insertOne(newUser);
+      db.newUser(email, tokenResponse);
     } else {
       db.collection.updateOne(user, new Document("$set", newUser));
     }
@@ -218,9 +200,6 @@ public class Endpoints {
     // try to make email and access token a string to just pass into the mongo
     // db make a new mongo db user once they are authenticated. create a new
     // user in db with id email access token and stuff, default values
-
-    // return payload.getEmail();
-    // return tokenResponse.getAccessToken();
   }
 
   @PutMapping("/timezone")
@@ -237,13 +216,7 @@ public class Endpoints {
       @RequestParam(value = "start") double start,
       @RequestParam(value = "end") double end,
       @RequestParam(value = "days") List<Boolean> days) {
-    // add time range for user in db
-    Document query = new Document("email", email);
-    String whichRange = type + "_timerange";
-    Document update = new Document("$push", new Document(whichRange + ".start", start)
-        .append(whichRange + ".end", end)
-        .append(whichRange + ".days", days));
-    db.collection.updateOne(query, update);
+    db.addTimeRange(email, type, start, end, days);
     return ResponseEntity.ok("Time range added!");
   }
 
@@ -290,46 +263,12 @@ public class Endpoints {
     return ResponseEntity.ok("Time range removed!");
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/newUser")
-  public static void addNewUser(
-      @RequestParam(value = "email") String email,
-      @RequestParam(value = "timezone") double timezone,
-      @RequestParam(value = "calendar_id") List<String> calendar_id,
-      @RequestParam(value = "preferred_start") List<Double> preferred_start,
-      @RequestParam(value = "preferred_end") List<Double> preferred_end,
-      @RequestParam(value = "preferred_day") List<List<Boolean>> preferred_day,
-      @RequestParam(value = "suboptimal_start") List<Double> suboptimal_start,
-      @RequestParam(value = "suboptimal_end") List<Double> suboptimal_end,
-      @RequestParam(value = "suboptimal_day") List<List<Boolean>> suboptimal_day) {
-
-    DatabaseManager.currentUser user = new DatabaseManager.currentUser(
-        email, timezone, calendar_id, preferred_start, preferred_end,
-        preferred_day, suboptimal_start, suboptimal_end, suboptimal_day);
-
-    Document document;
-    document = newcurrentUser(user);
-    db.collection.insertOne(document);
-  }
-
   @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
-  public static DatabaseManager.currentUser currentUser(@RequestParam(value = "email") String email) {
-    Document d = db.fetchUser(email);
-
-    if (d == null) {
+  public static Document currentUser(@RequestParam(value = "email") String email) {
+    Document d = db.fetchUser(email, false);
+    if (d == null)
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-    }
-
-    Document pt = (Document) d.get("preferred_timerange");
-    Document st = (Document) d.get("suboptimal_timerange");
-    DatabaseManager.currentUser user = new DatabaseManager.currentUser(
-        email, Double.valueOf(d.getString("timezone")),
-        (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-        (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-        (List<Double>) st.get("start"),
-        (List<Double>) st.get("end"),
-        (List<List<Boolean>>) st.get("days"));
-
-    return user;
+    return d;
   }
 
   @PutMapping("/calendar")

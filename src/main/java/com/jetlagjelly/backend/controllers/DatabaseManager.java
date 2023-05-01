@@ -125,12 +125,19 @@ public class DatabaseManager {
     return sampleDoc;
   }
 
-  public Document fetchUser(String email) {
+  public Document fetchUser(String email, boolean includeOauth) {
+    ArrayList<String> fieldsList = new ArrayList<String>(
+        Arrays.asList("email", "timezone", "calendar_id", "preferred_timerange",
+            "start", "end", "days", "suboptimal_timerange"));
+
+    if (includeOauth) {
+      List<String> oauthList = Arrays.asList("access_token", "refresh_token", "expires_at", "scope",
+          "token_type");
+      fieldsList.addAll(oauthList);
+    }
+
     Bson projectionFields = Projections.fields(
-        Projections.include(
-            "email", "access_token", "refresh_token", "expires_at", "scope",
-            "token_type", "timezone", "calendar_id", "preferred_timerange",
-            "start", "end", "days", "suboptimal_timerange"),
+        Projections.include(fieldsList),
         Projections.excludeId());
     Document doc = (Document) collection.find(eq("email", email))
         .projection(projectionFields)
@@ -169,13 +176,18 @@ public class DatabaseManager {
     user.calendar_id.add(id);
   }
 
-  public static void addTimeRange(User user, double start, double end,
-      List<Boolean> day) { // need parameter for day of
-    // the week (slot in the list
-    // (or rather array[7]?)?)?
-    user.start.add(start);
-    user.end.add(end);
-    user.days.add(day);
+  public void addTimeRange(
+      String email,
+      String type,
+      double start,
+      double end,
+      List<Boolean> days) {
+    Document query = new Document("email", email);
+    String whichRange = type + "_timerange";
+    Document update = new Document("$push", new Document(whichRange + ".start", start)
+        .append(whichRange + ".end", end)
+        .append(whichRange + ".days", days));
+    collection.updateOne(query, update);
   }
 
   public static void addSuboptimalTimes(User user, double start, double end,

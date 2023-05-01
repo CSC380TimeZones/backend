@@ -72,13 +72,13 @@ class DatabaseManagerTest {
     @Test
     void meetingMgr() {
         User user = constants();
-        Document document = db.fetchUser(user.email);
+        Document document = db.fetchUser(user.email, true);
         assertEquals("America/New_York", document.get("timezone"));
     }
 
     @Test
     void fetchUser() {
-        db.fetchUser("bmclean2@oswego.edu");
+        db.fetchUser("bmclean2@oswego.edu", false);
         // assertEquals(user.calendar_id, document.get("calendar_id"));
     }
 
