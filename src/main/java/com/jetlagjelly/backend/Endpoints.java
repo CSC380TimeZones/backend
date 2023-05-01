@@ -3,6 +3,7 @@ package com.jetlagjelly.backend;
 import static com.jetlagjelly.backend.CalendarQuickstart.events;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.*;
 import static com.jetlagjelly.backend.models.MeetingTimes.*;
+import static com.mongodb.client.model.Filters.eq;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
@@ -61,7 +62,6 @@ public class Endpoints {
     Long length = mc.getEndDay() - mc.getStartDay();
     Date dt = new Date(length);
 
-
     MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
     ArrayList<String> emailList = new ArrayList<>();
@@ -74,7 +74,6 @@ public class Endpoints {
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
 
-
       // Add user to not found list if email is not in database, and skip email
       if (d == null) {
         notFound.add(s);
@@ -83,14 +82,14 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
     }
@@ -106,14 +105,14 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
       a.add(events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
@@ -187,9 +186,9 @@ public class Endpoints {
 
     String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
     GoogleAuthorizationCodeRequestUrl url = flow
-            .newAuthorizationUrl()
-            .setRedirectUri(REDIRECT_URL)
-            .setAccessType("offline");
+        .newAuthorizationUrl()
+        .setRedirectUri(REDIRECT_URL)
+        .setAccessType("offline");
 
     return new RedirectView(url.toString());
   }
@@ -221,10 +220,6 @@ public class Endpoints {
 
     Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
 
-    JsonObject jsonResponse = new JsonObject();
-    jsonResponse.addProperty("access_token", tokenResponse.getAccessToken());
-    jsonResponse.addProperty("email", payload.getEmail());
-
     // Default Configuration
     List<String> scope = Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/calendar");
@@ -237,7 +232,7 @@ public class Endpoints {
     List<List<Boolean>> s_days = Arrays.asList(
         Arrays.asList(true, false, false, false, false, false, true));
     String email = payload.getEmail();
-    Document newUser = new Document("$set" , new Document("email", email)
+    Document newUser = new Document("email", email)
         .append("access_token", tokenResponse.getAccessToken())
         .append("refresh_token", tokenResponse.getRefreshToken())
         .append("expires_at", tokenResponse.getExpiresInSeconds())
@@ -251,11 +246,16 @@ public class Endpoints {
         .append("suboptimal_timerange",
             new Document("suboptimal_start", s_start)
                 .append("suboptimal_end", s_end)
-                .append("suboptimal_days", s_days)));
+                .append("suboptimal_days", s_days));
 
-    Document query = new Document("email", email);
-    collection.updateOne(query, newUser);
-    return jsonResponse.toString();
+    Document user = fetchUser(collection, email);
+    if (user != null) {
+      collection.updateOne(user, new Document("$set", newUser));
+    } else {
+      collection.insertOne(newUser);
+    }
+
+    return "You may now close this window!";
 
     // make an account with the email, add it to the db
     // try to make email and access token a string to just pass into the mongo
