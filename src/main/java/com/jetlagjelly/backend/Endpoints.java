@@ -174,7 +174,7 @@ public class Endpoints {
 
   @GetMapping("/oauth")
   public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException {
-    GoogleTokenResponse tokenResponse = AuthorizationManager.tradeCodeForAccessToken(authorizationCode);
+    GoogleTokenResponse tokenResponse = AuthorizationManager.getTokenFromCode(authorizationCode);
 
     HttpTransport httpTransport = new NetHttpTransport();
     GoogleCredential credential = new GoogleCredential.Builder()
