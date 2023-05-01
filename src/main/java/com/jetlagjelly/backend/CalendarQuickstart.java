@@ -115,6 +115,8 @@ public class CalendarQuickstart {
         ArrayList<Long> eventsList = new ArrayList<>();
 
         // iterate through hash table and events for the required calendar ID
+        eventsList.add(mc.getStartDay());
+        eventsList.add(mc.getEndDay());
         for (String requiredCalendarID : requiredCalendarIDs) {
             for (String calendarID : calendarsListHT.keySet()) {
                 if (calendarID.equals(requiredCalendarID)) {
@@ -132,7 +134,6 @@ public class CalendarQuickstart {
                     List<Event> items = events.getItems();
                     if (items.isEmpty()) {
                     } else {
-                        eventsList.add(mc.getStartDay());
                         for (Event event : items) {
                             DateTime start = event.getStart().getDateTime();
                             DateTime end = event.getEnd().getDateTime();
@@ -147,7 +148,6 @@ public class CalendarQuickstart {
                             eventsList.add(unixStart);
                             eventsList.add(unixEnd);
                         }
-                        eventsList.add(mc.getEndDay());
                     }
                 }
             }
