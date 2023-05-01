@@ -5,6 +5,8 @@ target/
 !**/src/test/**/target/
 credentials.json
 .DS_Store
+.env
+.ENV
 
 src/main/resources/credentials.json
 ### STS ###
