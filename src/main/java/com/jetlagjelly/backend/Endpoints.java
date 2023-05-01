@@ -80,6 +80,8 @@ public class Endpoints {
     Collections.addAll(emailList, emailArray);
     ArrayList<String> notFound = new ArrayList<>();
     MeetingTimes mt = new MeetingTimes();
+    ArrayList<ArrayList<Long>> a = new ArrayList<>();
+    ArrayList<ArrayList<Long>> b = new ArrayList<>();
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
@@ -100,34 +102,29 @@ public class Endpoints {
               (List<Double>) st.get("suboptimal_start"),
               (List<Double>) st.get("suboptimal_end"),
               (List<List<Boolean>>) st.get("suboptimal_days"));
-      for (int c = 0; c < j; c++) {
-        ArrayList<ArrayList<Long>> a = new ArrayList<>();
-        ArrayList<ArrayList<Long>> b = new ArrayList<>();
-        a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", c));
-        b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", c));
+        a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
+        b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", j));
         a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
         b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
+    }
+    ArrayList<Long> p = mm.intersectMany(a);
+    // System.out.println(p);
 
-        ArrayList<Long> p = mm.intersectMany(a);
-        // System.out.println(p);
+    for (int i = 0; i < p.size(); i++) {
+      if (i % 2 == 1) {
+        mt.setEndTimes(p.get(i));
+      } else if (i % 2 == 0) {
+        mt.setStartTimes(p.get(i));
+      }
+    }
+    // System.out.println(b);
 
-        for (int i = 0; i < p.size(); i++) {
-          if (i % 2 == 1) {
-            mt.setEndTimes(p.get(i));
-          } else if (i % 2 == 0) {
-            mt.setStartTimes(p.get(i));
-          }
-        }
-        // System.out.println(b);
-
-        ArrayList<Long> l = mm.intersectMany(b);
-        for (int i = 0; i < l.size(); i++) {
-          if (i % 2 == 1) {
-            mt.setSubEndTimes(l.get(i));
-          } else if (i % 2 == 0) {
-            mt.setSubStartTimes(l.get(i));
-          }
-        }
+    ArrayList<Long> l = mm.intersectMany(b);
+    for (int i = 0; i < l.size(); i++) {
+      if (i % 2 == 1) {
+        mt.setSubEndTimes(l.get(i));
+      } else if (i % 2 == 0) {
+        mt.setSubStartTimes(l.get(i));
       }
     }
 

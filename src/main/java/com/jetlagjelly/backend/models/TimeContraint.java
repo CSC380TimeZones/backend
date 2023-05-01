@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.TimeZone;
 
 import static com.jetlagjelly.backend.CalendarQuickstart.events;
-import static com.jetlagjelly.backend.Endpoints.mc;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.fetchUser;
 
