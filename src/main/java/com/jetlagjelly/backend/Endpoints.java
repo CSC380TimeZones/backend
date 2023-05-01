@@ -91,7 +91,7 @@ public class Endpoints {
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
     }
 
-    if (notFound.size() < 0) {
+    if (notFound.size() > 0) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "profile not found for:  " + notFound);
     }
