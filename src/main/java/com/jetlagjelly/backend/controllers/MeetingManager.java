@@ -154,11 +154,11 @@ public class MeetingManager {
 
     public static ArrayList<Long> intersect(ArrayList<Long> x, ArrayList<Long> y, ArrayList<Long> z) {
 
-        // If an array's length is zero, return the other one.
+        // If an array's length is zero, return an empty array
         if (x.size() == 0) {
-            return y;
+            return z;
         } else if (y.size() == 0) {
-            return x;
+            return z;
         }
 
         // establish larger and lesser [0]
@@ -169,6 +169,11 @@ public class MeetingManager {
         } else {
             larger = y;
             lesser = x;
+        }
+
+        // Return an empty array if there are no intersection points
+        if (larger.get(0) >= lesser.get(lesser.size() - 1)) {
+            return z;
         }
 
         do {
