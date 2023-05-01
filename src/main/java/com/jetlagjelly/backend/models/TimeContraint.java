@@ -1,6 +1,5 @@
 package com.jetlagjelly.backend.models;
 
-import com.jetlagjelly.backend.CalendarQuickstart;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.mongodb.client.MongoClient;
@@ -9,9 +8,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import io.github.cdimascio.dotenv.DotenvException;
 import org.bson.Document;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -20,9 +16,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
-
-import static com.jetlagjelly.backend.CalendarQuickstart.events;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
 
 public class TimeContraint {
     public static MongoCollection<Document> collection = new DatabaseManager().collection;

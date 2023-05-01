@@ -78,7 +78,7 @@ class DatabaseManagerTest {
 
     @Test
     void fetchUser() {
-        Document document = db.fetchUser("bmclean2@oswego.edu");
+        db.fetchUser("bmclean2@oswego.edu");
         // assertEquals(user.calendar_id, document.get("calendar_id"));
     }
 

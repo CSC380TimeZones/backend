@@ -141,7 +141,7 @@ public class DatabaseManager {
     return doc;
   }
 
-  public static Document fetchCurrentUser(MongoCollection collection,
+  public static Document fetchCurrentUser(MongoCollection<Document> collection,
       String email) {
     Bson projectionFields = Projections.fields(
         Projections.include("email", "timezone", "calendar_id",
@@ -236,7 +236,6 @@ public class DatabaseManager {
   public static List<Long> concreteTime(User user, MeetingContraint mc, String type, int weekAdvance) {
     List<Long> ranges = new ArrayList<>();
     List<DayOfWeek> day = new ArrayList<>();
-    List<DayOfWeek> unusedDay = new ArrayList<>();
     List<DayOfWeek> dbDay = new ArrayList<>();
     List<Integer> usedDays = new ArrayList<>();
     if (type.equals("preferred")) {
@@ -272,15 +271,15 @@ public class DatabaseManager {
             day.add(DayOfWeek.of(usedDays.get(i)));
             dbDay.add(DayOfWeek.of(usedDays.get(i)));
             LocalDateTime start = getNextClosestDateTime(
-                    dbDay, user.substart.get(j), mc.getStartDay(), user, y);
+                dbDay, user.substart.get(j), mc.getStartDay(), user, y);
             LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
-                    mc.getStartDay(), user, y);
+                mc.getStartDay(), user, y);
             ZonedDateTime zdtstart = ZonedDateTime.of(
-                    start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
+                start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
             long startTime = zdtstart.toInstant().toEpochMilli();
 
             ZonedDateTime zdtend = ZonedDateTime.of(
-                    end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
+                end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
             long endTime = zdtend.toInstant().toEpochMilli();
 
             ranges.add(startTime);
