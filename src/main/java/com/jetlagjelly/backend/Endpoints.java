@@ -27,6 +27,7 @@ import com.jetlagjelly.backend.models.MeetingTimes;
 import com.mongodb.client.MongoCollection;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.security.GeneralSecurityException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -43,8 +44,6 @@ import org.springframework.web.servlet.view.RedirectView;
 public class Endpoints {
 
   public static MeetingContraint mc = new MeetingContraint();
-  public static MeetingContraint mc2 = new MeetingContraint();
-
   public static MongoCollection collection = new DatabaseManager().collection;
   public static Dotenv dotenv = Dotenv.load();
 
@@ -78,9 +77,8 @@ public class Endpoints {
     ArrayList<String> emailList = new ArrayList<>();
     String[] emailArray = ls.split(" ");
     Collections.addAll(emailList, emailArray);
-    ArrayList<ArrayList<Long>> a = new ArrayList<>();
-    ArrayList<ArrayList<Long>> b = new ArrayList<>();
     ArrayList<String> notFound = new ArrayList<>();
+    MeetingTimes mt = new MeetingTimes();
 
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
@@ -93,36 +91,43 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-          s, d.getString("access_token"), d.getString("refresh_token"),
-          d.getLong("expires_at"), (List<String>) d.get("scope"),
-          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-          (List<Double>) st.get("suboptimal_start"),
-          (List<Double>) st.get("suboptimal_end"),
-          (List<List<Boolean>>) st.get("suboptimal_days"));
+              s, d.getString("access_token"), d.getString("refresh_token"),
+              d.getLong("expires_at"), (List<String>) d.get("scope"),
+              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+              (List<Double>) st.get("suboptimal_start"),
+              (List<Double>) st.get("suboptimal_end"),
+              (List<List<Boolean>>) st.get("suboptimal_days"));
       for (int c = 0; c < j; c++) {
-        a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred", c));
-        b.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "suboptimal", c));
+        ArrayList<ArrayList<Long>> a = new ArrayList<>();
+        ArrayList<ArrayList<Long>> b = new ArrayList<>();
+        a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", c));
+        b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", c));
+        a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
+        b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
+
+        ArrayList<Long> p = mm.intersectMany(a);
+        // System.out.println(p);
+
+        for (int i = 0; i < p.size(); i++) {
+          if (i % 2 == 1) {
+            mt.setEndTimes(p.get(i));
+          } else if (i % 2 == 0) {
+            mt.setStartTimes(p.get(i));
+          }
+        }
+        // System.out.println(b);
+
+        ArrayList<Long> l = mm.intersectMany(b);
+        for (int i = 0; i < l.size(); i++) {
+          if (i % 2 == 1) {
+            mt.setSubEndTimes(l.get(i));
+          } else if (i % 2 == 0) {
+            mt.setSubStartTimes(l.get(i));
+          }
+        }
       }
-    }
-
-    for (String s : emailList) {
-      Document d = fetchUser(collection, s);
-
-      Document pt = (Document) d.get("preferred_timerange");
-      Document st = (Document) d.get("suboptimal_timerange");
-      DatabaseManager.User user = new DatabaseManager.User(
-          s, d.getString("access_token"), d.getString("refresh_token"),
-          d.getLong("expires_at"), (List<String>) d.get("scope"),
-          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-          (List<Double>) st.get("suboptimal_start"),
-          (List<Double>) st.get("suboptimal_end"),
-          (List<List<Boolean>>) st.get("suboptimal_days"));
-      a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
-      b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
 
     if (notFound.size() > 0) {
@@ -130,28 +135,6 @@ public class Endpoints {
           "profile not found for:  " + notFound);
     }
     // System.out.println(a);
-    ArrayList<Long> p = mm.intersectMany(a);
-    // System.out.println(p);
-
-    MeetingTimes mt = new MeetingTimes();
-    for (int i = 0; i < p.size(); i++) {
-      if (i % 2 == 1) {
-        mt.setEndTimes(p.get(i));
-      } else if (i % 2 == 0) {
-        mt.setStartTimes(p.get(i));
-      }
-    }
-    // System.out.println(b);
-
-    ArrayList<Long> l = mm.intersectMany(b);
-    for (int i = 0; i < l.size(); i++) {
-      if (i % 2 == 1) {
-        mt.setSubEndTimes(l.get(i));
-      } else if (i % 2 == 0) {
-        mt.setSubStartTimes(l.get(i));
-      }
-    }
-
     // Remove times that are shorter than specified meeting length
     for (int i = 0; i < mt.startTimes.size(); i++) {
       long difference = mt.endTimes.get(i) - mt.startTimes.get(i);
