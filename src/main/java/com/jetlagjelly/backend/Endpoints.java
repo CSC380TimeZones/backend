@@ -60,14 +60,6 @@ public class Endpoints {
     mc.setStartDay(startDay);
     mc.setEndDay(endDay);
 
-    Long length = mc.getEndDay() - mc.getStartDay();
-    Boolean overWeek = false;
-
-    if(length > 604800000) {
-      mc2.setStartDay(startDay + 604800000);
-      mc2.setEndDay(endDay);
-      overWeek = true;
-    }
 
     MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
@@ -100,10 +92,6 @@ public class Endpoints {
               (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
-      if (overWeek) {
-        a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc2));
-        b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc2));
-      }
     }
 
     for (String s : emailList) {
