@@ -21,6 +21,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.TimeZone;
 
+import static com.jetlagjelly.backend.CalendarQuickstart.events;
+import static com.jetlagjelly.backend.controllers.DatabaseManager.collection;
+
 public class TimeContraint {
     public static MongoCollection<Document> collection = new DatabaseManager().collection;
 
