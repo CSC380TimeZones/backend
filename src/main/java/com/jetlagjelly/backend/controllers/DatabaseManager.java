@@ -247,11 +247,11 @@ public class DatabaseManager {
             LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
                     mc.getStartDay(), user, y);
             ZonedDateTime zdtstart = ZonedDateTime.of(
-                    start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+                    start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
             long startTime = zdtstart.toInstant().toEpochMilli();
 
             ZonedDateTime zdtend = ZonedDateTime.of(
-                    end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+                    end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
             long endTime = zdtend.toInstant().toEpochMilli();
 
             ranges.add(startTime);
@@ -271,11 +271,11 @@ public class DatabaseManager {
           LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
               mc.getStartDay(), user, weekAdvance);
           ZonedDateTime zdtstart = ZonedDateTime.of(
-              start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+              start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
           long startTime = zdtstart.toInstant().toEpochMilli();
 
           ZonedDateTime zdtend = ZonedDateTime.of(
-              end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+              end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
           long endTime = zdtend.toInstant().toEpochMilli();
 
           ranges.add(startTime);
@@ -376,7 +376,7 @@ public class DatabaseManager {
     final LocalDateTime dateNow = LocalDateTime.ofInstant(
         Instant.ofEpochMilli(meetingStartTime),
         ZoneId.ofOffset("UTC",
-            ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
+            ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
     final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(minutes).withSecond(0)
         .withNano(0).plusWeeks(weekAdvance);
 
