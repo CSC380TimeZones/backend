@@ -42,6 +42,8 @@ public class Endpoints {
   private String CLIENT_ID = "1018210986187-ve886ig30rfadhe5ahrmu2tg391ohq8s.apps.googleusercontent.com";
   private String CLIENT_SECRET = "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";
   public static MeetingContraint mc = new MeetingContraint();
+  public static MeetingContraint mc2 = new MeetingContraint();
+
   public static MongoCollection collection = new DatabaseManager().collection;
   public static Dotenv dotenv = Dotenv.load();
 
@@ -59,8 +61,13 @@ public class Endpoints {
     mc.setEndDay(endDay);
 
     Long length = mc.getEndDay() - mc.getStartDay();
-    Date dt = new Date(length);
+    Boolean overWeek = false;
 
+    if(length > 604800000) {
+      mc2.setStartDay(startDay + 604800000);
+      mc2.setEndDay(endDay + 604800000);
+      overWeek = true;
+    }
 
     MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
@@ -93,6 +100,10 @@ public class Endpoints {
               (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
+      if (overWeek) {
+        a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc2));
+        b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc2));
+      }
     }
 
     for (String s : emailList) {
@@ -285,9 +296,9 @@ public class Endpoints {
     // add time range for user in db
     Document query = new Document("email", email);
     String whichRange = type + "_timerange";
-    Document update = new Document("$push", new Document(whichRange + "." + type + "start", start)
-        .append(whichRange + "." + type + "end", end)
-        .append(whichRange + "." + type + "days", days));
+    Document update = new Document("$push", new Document(whichRange + "." + type + "_start", start)
+        .append(whichRange + "." + type + "_end", end)
+        .append(whichRange + "." + type + "_days", days));
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
   }
@@ -303,13 +314,13 @@ public class Endpoints {
     String whichRange = type + "_timerange";
 
     Document query = new Document("email", email);
-    Document update = new Document("$set", new Document(whichRange + "." + type + "start"
+    Document update = new Document("$set", new Document(whichRange + "." + type + "_start"
         + "." + index,
         start)
-        .append(whichRange + "." + type + "end"
+        .append(whichRange + "." + type + "_end"
             + "." + index,
             end)
-        .append(whichRange + "." + type + "days"
+        .append(whichRange + "." + type + "_days"
             + "." + index,
             days));
     collection.updateOne(query, update);
@@ -325,18 +336,18 @@ public class Endpoints {
 
     Document query = new Document("email", email);
     Document updatestart = new Document(
-        "$unset", new Document(whichRange + "." + type + "start." + index, null));
+        "$unset", new Document(whichRange + "." + type + "_start." + index, null));
     Document updateend = new Document(
-        "$unset", new Document(whichRange + "." + type + "end." + index, null));
+        "$unset", new Document(whichRange + "." + type + "_end." + index, null));
     Document updatedays = new Document(
-        "$unset", new Document(whichRange + "." + type + "days." + index, null));
+        "$unset", new Document(whichRange + "." + type + "_days." + index, null));
     collection.updateOne(query, updatestart);
     collection.updateOne(query, updateend);
     collection.updateOne(query, updatedays);
 
-    Document removeNullStart = new Document("$pull", new Document(whichRange + "." + type + "start", null));
-    Document removeNullEnd = new Document("$pull", new Document(whichRange + "." + type + "end", null));
-    Document removeNullDays = new Document("$pull", new Document(whichRange + "." + type + "days", null));
+    Document removeNullStart = new Document("$pull", new Document(whichRange + "." + type + "_start", null));
+    Document removeNullEnd = new Document("$pull", new Document(whichRange + "." + type + "_end", null));
+    Document removeNullDays = new Document("$pull", new Document(whichRange + "." + type + "_days", null));
     collection.updateOne(query, removeNullStart);
     collection.updateOne(query, removeNullEnd);
     collection.updateOne(query, removeNullDays);
