@@ -28,6 +28,8 @@ import com.mongodb.client.MongoCollection;
 import io.github.cdimascio.dotenv.Dotenv;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import org.bson.Document;
@@ -61,6 +63,18 @@ public class Endpoints {
     mc.setStartDay(startDay);
     mc.setEndDay(endDay);
 
+    LocalDateTime startdate = LocalDateTime.ofInstant(Instant.ofEpochMilli(startDay), TimeZone
+        .getDefault().toZoneId());
+
+    LocalDateTime enddate = LocalDateTime.ofInstant(Instant.ofEpochMilli(endDay), TimeZone
+        .getDefault().toZoneId());
+    int j = 0;
+    for (int i = 0; i < 52; i++) {
+      if (startdate.plusWeeks(i).isAfter(enddate)) {
+        j = i;
+      }
+    }
+
     MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
     ArrayList<String> emailList = new ArrayList<>();
@@ -89,8 +103,10 @@ public class Endpoints {
           (List<Double>) st.get("suboptimal_start"),
           (List<Double>) st.get("suboptimal_end"),
           (List<List<Boolean>>) st.get("suboptimal_days"));
-      a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred"));
-      b.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "suboptimal"));
+      for (int c = 0; c < j; c++) {
+        a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred", c));
+        b.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "suboptimal", c));
+      }
     }
 
     for (String s : emailList) {

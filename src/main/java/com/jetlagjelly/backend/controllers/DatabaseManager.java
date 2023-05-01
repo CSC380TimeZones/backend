@@ -373,7 +373,7 @@ public class DatabaseManager {
     return usedDays;
   }
 
-  public static List<Long> concreteTime(User user, MeetingContraint mc, String type) {
+  public static List<Long> concreteTime(User user, MeetingContraint mc, String type, int weekAdvance) {
     List<Long> ranges = new ArrayList<>();
     List<DayOfWeek> day = new ArrayList<>();
     List<DayOfWeek> unusedDay = new ArrayList<>();
@@ -386,9 +386,9 @@ public class DatabaseManager {
         day.add(DayOfWeek.of(usedDays.get(i)));
         dbDay.add(DayOfWeek.of(usedDays.get(i)));
         LocalDateTime start = getNextClosestDateTime(dbDay, user.start.get(j),
-            mc.getStartDay(), user);
+            mc.getStartDay(), user, weekAdvance);
         LocalDateTime end = getNextClosestDateTime(dbDay, user.end.get(j),
-            mc.getStartDay(), user);
+            mc.getStartDay(), user, weekAdvance);
         ZonedDateTime zdtstart = ZonedDateTime.of(
             start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
         long startTime = zdtstart.toInstant().toEpochMilli();
@@ -409,9 +409,9 @@ public class DatabaseManager {
           day.add(DayOfWeek.of(usedDays.get(i)));
           dbDay.add(DayOfWeek.of(usedDays.get(i)));
           LocalDateTime start = getNextClosestDateTime(
-                  dbDay, user.substart.get(j), mc.getStartDay(), user);
+                  dbDay, user.substart.get(j), mc.getStartDay(), user, weekAdvance);
           LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
-                  mc.getStartDay(), user);
+                  mc.getStartDay(), user, weekAdvance);
           ZonedDateTime zdtstart = ZonedDateTime.of(
                   start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
           long startTime = zdtstart.toInstant().toEpochMilli();
@@ -503,7 +503,7 @@ public class DatabaseManager {
   }
 
   public static LocalDateTime getNextClosestDateTime(List<DayOfWeek> daysOfWeek, double hour,
-      long meetingStartTime, User user)
+      long meetingStartTime, User user, int weekAdvance)
       throws IllegalArgumentException {
     if (daysOfWeek.isEmpty()) {
       throw new IllegalArgumentException("daysOfWeek should not be empty.");
@@ -520,7 +520,7 @@ public class DatabaseManager {
         ZoneId.ofOffset("UTC",
             ZoneOffset.ofTotalSeconds((int) (user.timezone * 360))));
     final LocalDateTime dateNowWithDifferentTime = dateNow.withHour(timeHours).withMinute(minutes).withSecond(0)
-        .withNano(0);
+        .withNano(0).plusWeeks(weekAdvance);
 
     return daysOfWeek.stream()
         .map(
