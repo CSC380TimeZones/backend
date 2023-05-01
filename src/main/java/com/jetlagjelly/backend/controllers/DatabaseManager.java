@@ -262,25 +262,27 @@ public class DatabaseManager {
       }
     } else {
       for (int j = 0; j < user.subdays.size(); j++) {
-        usedDays = getTimeRangeDays(user.subdays.get(j));
-        for (int i = 0; i < usedDays.size(); i++) {
-          day.add(DayOfWeek.of(usedDays.get(i)));
-          dbDay.add(DayOfWeek.of(usedDays.get(i)));
-          LocalDateTime start = getNextClosestDateTime(
-              dbDay, user.substart.get(j), mc.getStartDay(), user, weekAdvance);
-          LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
-              mc.getStartDay(), user, weekAdvance);
-          ZonedDateTime zdtstart = ZonedDateTime.of(
-              start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
-          long startTime = zdtstart.toInstant().toEpochMilli();
+        for (int y = 0; y < weekAdvance; y++) {
+          usedDays = getTimeRangeDays(user.subdays.get(j));
+          for (int i = 0; i < usedDays.size(); i++) {
+            day.add(DayOfWeek.of(usedDays.get(i)));
+            dbDay.add(DayOfWeek.of(usedDays.get(i)));
+            LocalDateTime start = getNextClosestDateTime(
+                    dbDay, user.substart.get(j), mc.getStartDay(), user, y);
+            LocalDateTime end = getNextClosestDateTime(dbDay, user.subend.get(j),
+                    mc.getStartDay(), user, y);
+            ZonedDateTime zdtstart = ZonedDateTime.of(
+                    start, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
+            long startTime = zdtstart.toInstant().toEpochMilli();
 
-          ZonedDateTime zdtend = ZonedDateTime.of(
-              end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
-          long endTime = zdtend.toInstant().toEpochMilli();
+            ZonedDateTime zdtend = ZonedDateTime.of(
+                    end, ZoneId.ofOffset("UTC", ZoneOffset.ofTotalSeconds((int) (user.timezone * 3600))));
+            long endTime = zdtend.toInstant().toEpochMilli();
 
-          ranges.add(startTime);
-          ranges.add(endTime);
-          dbDay.remove(DayOfWeek.of(usedDays.get(i)));
+            ranges.add(startTime);
+            ranges.add(endTime);
+            dbDay.remove(DayOfWeek.of(usedDays.get(i)));
+          }
         }
       }
     }
