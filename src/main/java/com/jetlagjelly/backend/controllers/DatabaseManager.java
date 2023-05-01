@@ -277,10 +277,11 @@ public class DatabaseManager {
       }
     } else {
       for (int j = 0; j < user.subdays.size(); j++) {
-        for (int y = 0; y < weekAdvance; y++) {
           usedDays = getTimeRangeDays(user.subdays.get(j));
           for (int i = 0; i < usedDays.size(); i++) {
-            day.add(DayOfWeek.of(usedDays.get(i)));
+            for (int y = 0; y < weekAdvance; y++) {
+
+              day.add(DayOfWeek.of(usedDays.get(i)));
             dbDay.add(DayOfWeek.of(usedDays.get(i)));
             LocalDateTime start = getNextClosestDateTime(
                 dbDay, user.substart.get(j), mc.getStartDay(), user, y);
