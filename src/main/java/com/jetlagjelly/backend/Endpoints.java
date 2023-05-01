@@ -19,6 +19,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.jetlagjelly.backend.controllers.AuthorizationManager;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
 import com.jetlagjelly.backend.models.MeetingContraint;
@@ -60,7 +61,6 @@ public class Endpoints {
     mc.setStartDay(startDay);
     mc.setEndDay(endDay);
 
-
     MeetingManager mm = new MeetingManager();
     String ls = mc.getEmail();
     ArrayList<String> emailList = new ArrayList<>();
@@ -73,7 +73,6 @@ public class Endpoints {
     for (String s : emailList) {
       Document d = fetchUser(collection, s);
 
-
       // Add user to not found list if email is not in database, and skip email
       if (d == null) {
         notFound.add(s);
@@ -82,14 +81,14 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc));
       b.add((ArrayList<Long>) DatabaseManager.concreteSubTime(user, mc));
     }
@@ -100,14 +99,14 @@ public class Endpoints {
       Document pt = (Document) d.get("preferred_timerange");
       Document st = (Document) d.get("suboptimal_timerange");
       DatabaseManager.User user = new DatabaseManager.User(
-              s, d.getString("access_token"), d.getString("refresh_token"),
-              d.getLong("expires_at"), (List<String>) d.get("scope"),
-              d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-              (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-              (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-              (List<Double>) st.get("suboptimal_start"),
-              (List<Double>) st.get("suboptimal_end"),
-              (List<List<Boolean>>) st.get("suboptimal_days"));
+          s, d.getString("access_token"), d.getString("refresh_token"),
+          d.getLong("expires_at"), (List<String>) d.get("scope"),
+          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
+          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
+          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
+          (List<Double>) st.get("suboptimal_start"),
+          (List<Double>) st.get("suboptimal_end"),
+          (List<List<Boolean>>) st.get("suboptimal_days"));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
       b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id));
     }
@@ -116,7 +115,7 @@ public class Endpoints {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "profile not found for:  " + notFound);
     }
-    //System.out.println(a);
+    // System.out.println(a);
     ArrayList<Long> p = mm.intersectMany(a);
     // System.out.println(p);
 
@@ -168,36 +167,16 @@ public class Endpoints {
   }
 
   @GetMapping("/login")
-  public RedirectView login() throws IOException, GeneralSecurityException {
-
-    // this is the only one that doesn't give an error
-    HttpTransport httpTransport = new NetHttpTransport();
-    GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
-        httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
-        Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/calendar"))
-        // Collections.singleton("https://www.googleapis.com/auth/calendar"))
-        .build();
-
-    String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
-    GoogleAuthorizationCodeRequestUrl url = flow
-            .newAuthorizationUrl()
-            .setRedirectUri(REDIRECT_URL)
-            .setAccessType("offline");
-
-    return new RedirectView(url.toString());
+  public RedirectView login() {
+    String url = AuthorizationManager.getAuthorizationUrl();
+    return new RedirectView(url);
   }
 
   @GetMapping("/oauth")
-  public String handleCallback(@RequestParam(value = "code") String authorizationCode)
-      throws IOException, GeneralSecurityException {
-    String REDIRECT_URL = dotenv.get("REDIRECT_URL", "http://localhost/oauth");
-    HttpTransport httpTransport = new NetHttpTransport();
-    GoogleTokenResponse tokenResponse = new GoogleAuthorizationCodeTokenRequest(
-        httpTransport, new GsonFactory(), CLIENT_ID, CLIENT_SECRET,
-        authorizationCode, REDIRECT_URL)
-        .execute();
+  public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException {
+    GoogleTokenResponse tokenResponse = AuthorizationManager.tradeCodeForAccessToken(authorizationCode);
 
+    HttpTransport httpTransport = new NetHttpTransport();
     GoogleCredential credential = new GoogleCredential.Builder()
         .setTransport(httpTransport)
         .setJsonFactory(new GsonFactory())
@@ -231,7 +210,7 @@ public class Endpoints {
     List<List<Boolean>> s_days = Arrays.asList(
         Arrays.asList(true, false, false, false, false, false, true));
     String email = payload.getEmail();
-    Document newUser = new Document("$set" , new Document("email", email)
+    Document newUser = new Document("$set", new Document("email", email)
         .append("access_token", tokenResponse.getAccessToken())
         .append("refresh_token", tokenResponse.getRefreshToken())
         .append("expires_at", tokenResponse.getExpiresInSeconds())
@@ -280,14 +259,14 @@ public class Endpoints {
     Document query = new Document("email", email);
     String whichRange = type + "_timerange";
     Document update = new Document();
-    if(type.equals("suboptimal")) {
+    if (type.equals("suboptimal")) {
       update = new Document("$push", new Document(whichRange + "." + type + "_start", start)
-              .append(whichRange + "." + type + "_end", end)
-              .append(whichRange + "." + type + "_days", days));
+          .append(whichRange + "." + type + "_end", end)
+          .append(whichRange + "." + type + "_days", days));
     } else {
       update = new Document("$push", new Document(whichRange + ".start", start)
-              .append(whichRange + ".end", end)
-              .append(whichRange + ".days", days));
+          .append(whichRange + ".end", end)
+          .append(whichRange + ".days", days));
     }
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range added!");
@@ -305,26 +284,26 @@ public class Endpoints {
 
     Document query = new Document("email", email);
     Document update = new Document();
-    if(type.equals("suboptimal")) {
+    if (type.equals("suboptimal")) {
       update = new Document("$set", new Document(whichRange + "." + type + "_start"
+          + "." + index,
+          start)
+          .append(whichRange + "." + type + "_end"
               + "." + index,
-              start)
-              .append(whichRange + "." + type + "_end"
-                              + "." + index,
-                      end)
-              .append(whichRange + "." + type + "_days"
-                              + "." + index,
-                      days));
+              end)
+          .append(whichRange + "." + type + "_days"
+              + "." + index,
+              days));
     } else {
       update = new Document("$set", new Document(whichRange + ".start"
+          + "." + index,
+          start)
+          .append(whichRange + ".end"
               + "." + index,
-              start)
-              .append(whichRange + ".end"
-                              + "." + index,
-                      end)
-              .append(whichRange + ".days"
-                              + "." + index,
-                      days));
+              end)
+          .append(whichRange + ".days"
+              + "." + index,
+              days));
     }
     collection.updateOne(query, update);
     return ResponseEntity.ok("Time range updated!");
@@ -337,14 +316,14 @@ public class Endpoints {
     // remove time range for user in db
     String whichRange = type + "_timerange";
 
-    if(type.equals("suboptimal")) {
+    if (type.equals("suboptimal")) {
       Document query = new Document("email", email);
       Document updatestart = new Document(
-              "$unset", new Document(whichRange + "." + type + "_start." + index, null));
+          "$unset", new Document(whichRange + "." + type + "_start." + index, null));
       Document updateend = new Document(
-              "$unset", new Document(whichRange + "." + type + "_end." + index, null));
+          "$unset", new Document(whichRange + "." + type + "_end." + index, null));
       Document updatedays = new Document(
-              "$unset", new Document(whichRange + "." + type + "_days." + index, null));
+          "$unset", new Document(whichRange + "." + type + "_days." + index, null));
       collection.updateOne(query, updatestart);
       collection.updateOne(query, updateend);
       collection.updateOne(query, updatedays);
@@ -358,11 +337,11 @@ public class Endpoints {
     } else {
       Document query = new Document("email", email);
       Document updatestart = new Document(
-              "$unset", new Document(whichRange + ".start." + index, null));
+          "$unset", new Document(whichRange + ".start." + index, null));
       Document updateend = new Document(
-              "$unset", new Document(whichRange + ".end." + index, null));
+          "$unset", new Document(whichRange + ".end." + index, null));
       Document updatedays = new Document(
-              "$unset", new Document(whichRange + ".days." + index, null));
+          "$unset", new Document(whichRange + ".days." + index, null));
       collection.updateOne(query, updatestart);
       collection.updateOne(query, updateend);
       collection.updateOne(query, updatedays);
