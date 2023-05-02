@@ -50,9 +50,13 @@ public class Endpoints {
     LocalDateTime enddate = LocalDateTime.ofInstant(Instant.ofEpochMilli(endDay), TimeZone
         .getDefault().toZoneId());
     int j = 0;
-    for (int i = 0; i < 52; i++) {
-      if (startdate.plusWeeks(i).isAfter(enddate)) {
-        j = i;
+    if (startdate.plusWeeks(1).isEqual(enddate)) {
+      j = 1;
+    } else {
+      for (int i = 0; i < 52; i++) {
+        if (startdate.plusWeeks(i).isAfter(enddate)) {
+          j = i;
+        }
       }
     }
 
