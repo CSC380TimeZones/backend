@@ -2,6 +2,8 @@ package com.jetlagjelly.backend.models;
 
 import java.util.List;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+
 public class User {
   public String email;
   public String access_token;
@@ -36,5 +38,14 @@ public class User {
     substart = ss;
     subend = se;
     subdays = sd;
+  }
+
+  public User updateOauthProperties(GoogleTokenResponse tokenResponse) {
+    access_token = tokenResponse.getAccessToken();
+    refresh_token = tokenResponse.getRefreshToken();
+    expires_at = System.currentTimeMillis() + tokenResponse.getExpiresInSeconds() * 1000;
+    token_type = tokenResponse.getTokenType();
+
+    return this;
   }
 }

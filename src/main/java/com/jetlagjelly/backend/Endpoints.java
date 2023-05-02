@@ -84,6 +84,7 @@ public class Endpoints {
       if (user.expires_at <= System.currentTimeMillis()) {
         GoogleTokenResponse tokenResponse = AuthorizationManager.refreshToken(user.refresh_token);
         db.updateUserToken(user.email, tokenResponse);
+        user.updateOauthProperties(tokenResponse);
       }
 
       a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
