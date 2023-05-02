@@ -10,6 +10,7 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.models.*;
 
@@ -72,12 +73,27 @@ class DatabaseManagerTest {
     }
 
     @Test
+    void createUser() {
+        GoogleTokenResponse tokenResponse = new GoogleTokenResponse()
+                .setAccessToken("Ha92mldka03k")
+                .setRefreshToken("8sk2ldoan3kd")
+                .setExpiresInSeconds(3600l)
+                .setTokenType("Bearer")
+                .setScope("https://www.googleapis.com");
+        Document user = db.newUser("jetlagjellyfan@gmail.com", tokenResponse);
+
+        assertEquals(user.get("email"), "jetlagjellyfan@gmail.com");
+        assertEquals(user.get("timezone"), "0");
+        assertEquals(user.get("access_token"), "Ha92mldka03k");
+    }
+
+    @Test
     void getUser() {
-        Document user = db.fetchUser("bmclean426@gmail.com", false);
+        Document user = db.fetchUser("jetlagjellyfan@gmail.com", false);
         assertNotNull(user);
         assertNull(user.get("access_token"));
         assertNotNull(user.get("timezone"));
-        assertEquals(user.get("email"), "bmclean426@gmail.com");
+        assertEquals(user.get("email"), "jetlagjellyfan@gmail.com");
     }
 
     @Test

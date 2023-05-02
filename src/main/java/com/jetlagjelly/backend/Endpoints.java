@@ -77,7 +77,7 @@ public class Endpoints {
 
     for (String s : emailList) {
       // Get user object from database
-      User user = db.fetchUserAsUserObject(s, false);
+      User user = db.fetchUserAsUserObject(s, true);
 
       // Add user to not found list if email is not in database, and skip email
       if (user == null) {

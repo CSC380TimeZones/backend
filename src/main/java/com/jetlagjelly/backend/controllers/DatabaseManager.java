@@ -141,11 +141,11 @@ public class DatabaseManager {
 
     List<Double> pStart = pt.getList("start", Double.class);
     List<Double> pEnd = pt.getList("end", Double.class);
-    List<List<Boolean>> pDays = (List<List<Boolean>>) pt.get("days", List.class);
+    List<List<Boolean>> pDays = (List<List<Boolean>>) pt.get("days");
 
     List<Double> sStart = st.getList("start", Double.class);
     List<Double> sEnd = st.getList("end", Double.class);
-    List<List<Boolean>> sDays = (List<List<Boolean>>) pt.get("days", List.class);
+    List<List<Boolean>> sDays = (List<List<Boolean>>) pt.get("days");
 
     User userObject = new User(
         email,
