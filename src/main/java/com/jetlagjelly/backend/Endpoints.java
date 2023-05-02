@@ -135,12 +135,14 @@ public class Endpoints {
 
   @GetMapping("/login")
   public RedirectView login() {
+
     String url = AuthorizationManager.getAuthorizationUrl();
     return new RedirectView(url);
   }
 
   @GetMapping("/oauth")
   public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException {
+
     AuthorizationManager.handleOauthCallback(db, authorizationCode);
     return "Authorization Success! You may now close this window.";
   }
@@ -149,6 +151,7 @@ public class Endpoints {
   public static ResponseEntity<String> setTimezone(
       @RequestParam(value = "email") String email,
       @RequestParam(value = "timezone") String timezone) {
+
     db.setTimezone(email, timezone);
     return ResponseEntity.ok("Timezone set!");
   }
@@ -159,6 +162,7 @@ public class Endpoints {
       @RequestParam(value = "start") double start,
       @RequestParam(value = "end") double end,
       @RequestParam(value = "days") List<Boolean> days) {
+
     db.addTimeRange(email, type, start, end, days);
     return ResponseEntity.ok("Time range added!");
   }
@@ -170,6 +174,7 @@ public class Endpoints {
       @RequestParam(value = "start") double start,
       @RequestParam(value = "end") double end,
       @RequestParam(value = "days") List<Boolean> days) {
+
     db.updateTimeRange(email, type, index, start, end, days);
     return ResponseEntity.ok("Time range updated!");
   }
@@ -178,12 +183,14 @@ public class Endpoints {
   public ResponseEntity<String> removeTimeRange(@RequestParam(value = "email") String email,
       @RequestParam(value = "type") String type,
       @RequestParam(value = "index") int index) {
+
     db.deleteTimeRange(email, type, index);
     return ResponseEntity.ok("Time range removed!");
   }
 
   @GetMapping("/currentUser")
   public static Document currentUser(@RequestParam(value = "email") String email) {
+
     Document user = db.fetchUser(email, false);
     if (user == null)
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
@@ -194,6 +201,7 @@ public class Endpoints {
   public static void calendar(@RequestParam(value = "email") String email,
       @RequestParam(value = "calendar_id") String calendar_id,
       @RequestParam(value = "used") Boolean used) {
+
     db.toggleCalendar(email, calendar_id, used);
   }
 }
