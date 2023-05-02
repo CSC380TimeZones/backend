@@ -88,6 +88,7 @@ public class Endpoints {
 
       a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
       b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", j));
+      b.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
       b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
     }
@@ -115,6 +116,23 @@ public class Endpoints {
         mt.setSubEndTimes(l.get(i));
       } else if (i % 2 == 0) {
         mt.setSubStartTimes(l.get(i));
+      }
+    }
+
+    for (int i = 0; i < p.size(); i++) {
+      for (int k = 0; k < l.size(); k++) {
+        if (mt.endTimes.get(i) < mt.subEndTimes.get(k)
+                && mt.subEndTimes.get(k) < mt.subStartTimes.get(k)
+                && mt.subStartTimes.get(k)< mt.startTimes.get(i)) {
+          mt.subStartTimes.remove(k);
+          mt.subEndTimes.remove(k);
+        } else if (mt.subEndTimes.get(k).equals(mt.endTimes.get(i))) {
+          mt.subStartTimes.remove(k);
+          mt.subEndTimes.remove(k);
+        } else if (mt.subStartTimes.get(k).equals(mt.startTimes.get(i))) {
+          mt.subStartTimes.remove(k);
+          mt.subEndTimes.remove(k);
+        }
       }
     }
 
