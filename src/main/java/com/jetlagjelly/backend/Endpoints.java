@@ -88,7 +88,7 @@ public class Endpoints {
       }
 
       List<Long> preferredConcreteTimes = concreteTime(user, mc, "preferred", j);
-      List<Long> suboptimalConcreteTimes = concreteTime(user, mc, "preferred", j);
+      List<Long> suboptimalConcreteTimes = concreteTime(user, mc, "suboptimal", j);
       a.add((ArrayList<Long>) preferredConcreteTimes);
       b.add((ArrayList<Long>) suboptimalConcreteTimes);
       b.add((ArrayList<Long>) preferredConcreteTimes);
