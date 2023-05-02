@@ -56,7 +56,7 @@ public class GoogleAPIManager {
   }
 
   /**
-   * Get's a users email given the credentials of the class
+   * Get's a users email given the credentials of the instantiated class
    * 
    * @return
    * @throws IOException
