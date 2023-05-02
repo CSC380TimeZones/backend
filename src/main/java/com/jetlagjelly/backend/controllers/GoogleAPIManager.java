@@ -43,7 +43,8 @@ public class GoogleAPIManager {
   /**
    * Creates a GoogleAPIManager from a GoogleTokenResponse
    * 
-   * @param email
+   * @param db
+   * @param tokenResponse
    */
   GoogleAPIManager(DatabaseManager db, GoogleTokenResponse tokenResponse) {
     httpTransport = new NetHttpTransport();

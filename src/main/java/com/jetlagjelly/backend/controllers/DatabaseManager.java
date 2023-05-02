@@ -85,7 +85,7 @@ public class DatabaseManager {
   /**
    * Updates user token using User email
    * 
-   * @param user
+   * @param email
    * @param tokenResponse
    */
   public void updateUserToken(String email, GoogleTokenResponse tokenResponse) {
