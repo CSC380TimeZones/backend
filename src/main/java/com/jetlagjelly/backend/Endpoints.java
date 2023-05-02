@@ -3,7 +3,7 @@ package com.jetlagjelly.backend;
 import static com.jetlagjelly.backend.controllers.MeetingManager.intersectMany;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.concreteTime;
 import com.jetlagjelly.backend.models.*;
-
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.jetlagjelly.backend.controllers.AuthorizationManager;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
@@ -69,16 +69,30 @@ public class Endpoints {
       // Get user object from database
       User user = db.fetchUserAsUserObject(s, true);
 
-      // Add user to not found list if email is not in database, and skip email
+      // Add user to not found list if email is not in database, and skip all time
+      // checks
       if (user == null) {
         notFound.add(s);
         continue;
+      } else if (!notFound.isEmpty())
+        continue;
+
+      if (user.expires_at <= System.currentTimeMillis()) {
+        GoogleTokenResponse tokenResponse = AuthorizationManager.refreshToken(user.refresh_token);
+        db.updateUserToken(user.email, tokenResponse);
       }
+
       a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
       b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", j));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
       b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
     }
+
+    if (notFound.size() > 0) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+          "profile not found for:  " + notFound);
+    }
+
     ArrayList<Long> p = intersectMany(a);
     // System.out.println(p);
 
@@ -100,10 +114,6 @@ public class Endpoints {
       }
     }
 
-    if (notFound.size() > 0) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          "profile not found for:  " + notFound);
-    }
     // System.out.println(a);
     // Remove times that are shorter than specified meeting length
     for (int i = 0; i < mt.startTimes.size(); i++) {

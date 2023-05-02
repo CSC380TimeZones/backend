@@ -31,7 +31,7 @@ public class AuthorizationManager {
    * Creates the URL used to login using Google Oauth
    */
   public static String getAuthorizationUrl() {
-    JsonObject credentials = getCredentials();
+    JsonObject credentials = getCredentialsFile();
     String REDIRECT_URL = dotenv.get("REDIRECT_URL");
 
     HttpTransport httpTransport = new NetHttpTransport();
@@ -59,7 +59,7 @@ public class AuthorizationManager {
    * @throws IOException
    */
   public static GoogleTokenResponse getTokenFromCode(String authorizationCode) throws IOException {
-    JsonObject credentials = getCredentials();
+    JsonObject credentials = getCredentialsFile();
     String REDIRECT_URL = dotenv.get("REDIRECT_URL");
 
     HttpTransport httpTransport = new NetHttpTransport();
@@ -81,15 +81,15 @@ public class AuthorizationManager {
    * @throws IOException
    */
   public static GoogleTokenResponse refreshToken(String refreshToken) throws IOException {
-    JsonObject credentials = getCredentials();
+    JsonObject credentials = getCredentialsFile();
 
     HttpTransport httpTransport = new NetHttpTransport();
     GoogleRefreshTokenRequest refreshTokenRequest = new GoogleRefreshTokenRequest(
         httpTransport,
         new GsonFactory(),
         refreshToken,
-        credentials.get("client_secret").getAsString(),
-        credentials.get("client_id").getAsString());
+        credentials.get("client_id").getAsString(),
+        credentials.get("client_secret").getAsString());
 
     try {
       GoogleTokenResponse tokenResponse = refreshTokenRequest.execute();
@@ -131,7 +131,7 @@ public class AuthorizationManager {
     if (user == null)
       user = db.newUser(email, tokenResponse);
     else
-      db.updateUserToken(user, tokenResponse);
+      db.updateUserToken(user.getString("email"), tokenResponse);
     return user;
   }
 
@@ -140,14 +140,13 @@ public class AuthorizationManager {
    * authorizing web requests
    */
   protected static GoogleCredential getCredential() {
-    JsonObject credentials = getCredentials();
+    JsonObject credentials = getCredentialsFile();
 
     HttpTransport httpTransport = new NetHttpTransport();
     GoogleCredential credential = new GoogleCredential.Builder()
         .setTransport(httpTransport)
-        .setJsonFactory(new GsonFactory())
+        .setJsonFactory(GsonFactory.getDefaultInstance())
         .setClientSecrets(
-
             credentials.get("client_id").getAsString(),
             credentials.get("client_secret").getAsString())
         .build();
@@ -158,7 +157,7 @@ public class AuthorizationManager {
    * Returns the web property of a credential.json file stored at
    * src/main/resources/credentials.json
    */
-  private static JsonObject getCredentials() {
+  private static JsonObject getCredentialsFile() {
     String credentialsPath = System.getProperty("user.dir") + "/src/main/resources/credentials.json";
 
     BufferedReader reader;

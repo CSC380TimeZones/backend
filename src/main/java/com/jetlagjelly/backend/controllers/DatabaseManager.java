@@ -82,14 +82,20 @@ public class DatabaseManager {
     return newUser;
   }
 
-  public void updateUserToken(Document user, GoogleTokenResponse tokenResponse) {
+  /**
+   * Updates user token using User email
+   * 
+   * @param user
+   * @param tokenResponse
+   */
+  public void updateUserToken(String email, GoogleTokenResponse tokenResponse) {
+    Document user = fetchUser(email, true);
 
     String scopeUrl = "https://www.googleapis.com/auth/";
     List<String> scope = Arrays.asList(scopeUrl + "userinfo.email", scopeUrl + "calendar");
 
     Document update = new Document("email", user.get("email"))
         .append("access_token", tokenResponse.getAccessToken())
-        .append("refresh_token", tokenResponse.getRefreshToken())
         .append("expires_at", System.currentTimeMillis() + tokenResponse.getExpiresInSeconds() * 1000)
         .append("scope", scope)
         .append("token_type", tokenResponse.getTokenType());
@@ -114,9 +120,6 @@ public class DatabaseManager {
     Document doc = (Document) collection.find(eq("email", email))
         .projection(projectionFields)
         .first();
-    if (doc == null) {
-      sendEmail(email);
-    }
     return doc;
   }
 
@@ -128,8 +131,8 @@ public class DatabaseManager {
    * @return
    */
   public User fetchUserAsUserObject(String email, boolean includeOauth) {
-
     Document user = fetchUser(email, includeOauth);
+
     if (user == null)
       return null;
 
