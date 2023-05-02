@@ -51,7 +51,7 @@ public class Endpoints {
         .getDefault().toZoneId());
     int j = 0;
     if (startdate.plusWeeks(1).isEqual(enddate)) {
-      j = 1;
+      j = 0;
     } else {
       for (int i = 0; i < 52; i++) {
         if (startdate.plusWeeks(i).isAfter(enddate)) {
