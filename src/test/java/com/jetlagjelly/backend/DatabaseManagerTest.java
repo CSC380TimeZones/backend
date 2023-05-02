@@ -1,5 +1,7 @@
 package com.jetlagjelly.backend;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
@@ -70,10 +72,12 @@ class DatabaseManagerTest {
     }
 
     @Test
-    void meetingMgr() {
-        User user = constants();
-        Document document = db.fetchUser(user.email, true);
-        assertEquals("America/New_York", document.get("timezone"));
+    void getUser() {
+        Document user = db.fetchUser("bmclean426@gmail.com", false);
+        assertNotNull(user);
+        assertNull(user.get("access_token"));
+        assertNotNull(user.get("timezone"));
+        assertEquals(user.get("email"), "bmclean426@gmail.com");
     }
 
     @Test

@@ -52,32 +52,6 @@ public class DatabaseManager {
     collection = db.getCollection("users");
   }
 
-  public static final class currentUser {
-    public String email;
-    public double timezone;
-    public List<String> calendar_id;
-    public List<Double> start;
-    public List<Double> end;
-    public List<List<Boolean>> days;
-    public List<Double> substart;
-    public List<Double> subend;
-    public List<List<Boolean>> subdays;
-
-    public currentUser(String em, double t, List<String> cid, List<Double> s,
-        List<Double> e, List<List<Boolean>> d, List<Double> ss,
-        List<Double> se, List<List<Boolean>> sd) {
-      email = em;
-      timezone = t;
-      calendar_id = cid;
-      start = s;
-      end = e;
-      days = d;
-      substart = ss;
-      subend = se;
-      subdays = sd;
-    }
-  }
-
   public Document newUser(String email, GoogleTokenResponse tokenResponse) {
 
     // Default Configuration
@@ -108,21 +82,19 @@ public class DatabaseManager {
     return newUser;
   }
 
-  public static Document newcurrentUser(currentUser user) {
-    Document tr = new Document()
-        .append("start", user.start)
-        .append("end", user.end)
-        .append("days", user.days);
-    Document st = new Document()
-        .append("start", user.substart)
-        .append("end", user.subend)
-        .append("days", user.subdays);
-    Document sampleDoc = new Document("email", user.email)
-        .append("timezone", user.timezone)
-        .append("calendar_id", user.calendar_id)
-        .append("preferred_timerange", tr)
-        .append("suboptimal_timerange", st);
-    return sampleDoc;
+  public void updateUserToken(Document user, GoogleTokenResponse tokenResponse) {
+
+    String scopeUrl = "https://www.googleapis.com/auth/";
+    List<String> scope = Arrays.asList(scopeUrl + "userinfo.email", scopeUrl + "calendar");
+
+    Document update = new Document("email", user.get("email"))
+        .append("access_token", tokenResponse.getAccessToken())
+        .append("refresh_token", tokenResponse.getRefreshToken())
+        .append("expires_at", tokenResponse.getExpiresInSeconds())
+        .append("scope", scope)
+        .append("token_type", tokenResponse.getTokenType()).append("timezone", "0");
+
+    collection.updateOne(user, new Document("$set", update));
   }
 
   public Document fetchUser(String email, boolean includeOauth) {
@@ -148,17 +120,42 @@ public class DatabaseManager {
     return doc;
   }
 
-  public static Document fetchCurrentUser(MongoCollection<Document> collection,
-      String email) {
-    Bson projectionFields = Projections.fields(
-        Projections.include("email", "timezone", "calendar_id",
-            "preferred_timerange", "start", "end", "days",
-            "suboptimal_timerange"),
-        Projections.excludeId());
-    Document doc = (Document) collection.find(eq("email", email))
-        .projection(projectionFields)
-        .first();
-    return doc;
+  /**
+   * Grabs a user from the databse and returns it as an object of class User
+   * 
+   * @param email
+   * @param includeOauth
+   * @return
+   */
+  public User fetchUserAsUserObject(String email, boolean includeOauth) {
+
+    Document user = fetchUser(email, includeOauth);
+    if (user == null)
+      return null;
+
+    Document pt = user.get("preferred_timerange", Document.class);
+    Document st = user.get("suboptimal_timerange", Document.class);
+
+    List<String> scope = user.getList("scope", String.class);
+    List<String> calendarId = user.getList("calendar_id", String.class);
+
+    List<Double> pStart = pt.getList("start", Double.class);
+    List<Double> pEnd = pt.getList("end", Double.class);
+    List<List<Boolean>> pDays = (List<List<Boolean>>) pt.get("days", List.class);
+
+    List<Double> sStart = st.getList("start", Double.class);
+    List<Double> sEnd = st.getList("end", Double.class);
+    List<List<Boolean>> sDays = (List<List<Boolean>>) pt.get("days", List.class);
+
+    User userObject = new User(
+        email,
+        user.getString("access_token"), user.getString("refresh_token"),
+        user.getLong("expires_at"), scope, user.getString("token_type"),
+        Double.valueOf(user.getString("timezone")), calendarId,
+        pStart, pEnd, pDays,
+        sStart, sEnd, sDays);
+
+    return userObject;
   }
 
   public void deleteUser(User user) {
@@ -172,8 +169,25 @@ public class DatabaseManager {
     collection.updateOne(query, update);
   }
 
-  public static void addCalendar(User user, String id) {
-    user.calendar_id.add(id);
+  /**
+   * Adds a new calendar to the array if used is true, otherwise removes it
+   * 
+   * @param email
+   * @param calendar_id
+   * @param used
+   */
+  public void toggleCalendar(String email, String calendar_id, boolean used) {
+
+    Document query = new Document("email", email);
+    Document update = new Document();
+
+    if (used) {
+      update = new Document("$push", new Document("calendar_id", calendar_id));
+    } else {
+      update = new Document("$pull", new Document("calendar_id", calendar_id));
+    }
+
+    collection.updateOne(query, update);
   }
 
   public void addTimeRange(
@@ -190,11 +204,44 @@ public class DatabaseManager {
     collection.updateOne(query, update);
   }
 
-  public static void addSuboptimalTimes(User user, double start, double end,
-      List<Boolean> day) {
-    user.substart.add(start);
-    user.subend.add(end);
-    user.subdays.add(day);
+  public void updateTimeRange(
+      String email,
+      String type,
+      int index,
+      double start,
+      double end,
+      List<Boolean> days) {
+    String whichRange = type + "_timerange";
+
+    Document query = new Document("email", email);
+    Document update = new Document("$set",
+        new Document(whichRange + ".start" + "." + index, start)
+            .append(whichRange + ".end" + "." + index, end)
+            .append(whichRange + ".days" + "." + index, days));
+    collection.updateOne(query, update);
+  }
+
+  public void deleteTimeRange(
+      String email,
+      String type,
+      int index) {
+
+    String whichRange = type + "_timerange";
+
+    Document query = new Document("email", email);
+    Document updatestart = new Document("$unset", new Document(whichRange + ".start." + index, null));
+    Document updateend = new Document("$unset", new Document(whichRange + ".end." + index, null));
+    Document updatedays = new Document("$unset", new Document(whichRange + ".days." + index, null));
+    collection.updateOne(query, updatestart);
+    collection.updateOne(query, updateend);
+    collection.updateOne(query, updatedays);
+
+    Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
+    Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
+    Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
+    collection.updateOne(query, removeNullStart);
+    collection.updateOne(query, removeNullEnd);
+    collection.updateOne(query, removeNullDays);
   }
 
   public static void sendEmail(String recipient) {
@@ -235,16 +282,6 @@ public class DatabaseManager {
     }
   }
 
-  public static List<Integer> getTimeRangeDays(List<Boolean> tr) {
-    List<Integer> usedDays = new ArrayList<>();
-    for (int i = 0; i < tr.size(); i++) {
-      if (tr.get(i).equals(true)) {
-        usedDays.add(((i + 6) % 7) + 1);
-      }
-    }
-    return usedDays;
-  }
-
   public static List<Long> concreteTime(User user, MeetingContraint mc, String type, int weekAdvance) {
     List<Long> ranges = new ArrayList<>();
     List<DayOfWeek> day = new ArrayList<>();
@@ -277,11 +314,11 @@ public class DatabaseManager {
       }
     } else {
       for (int j = 0; j < user.subdays.size(); j++) {
-          usedDays = getTimeRangeDays(user.subdays.get(j));
-          for (int i = 0; i < usedDays.size(); i++) {
-            for (int y = 0; y < weekAdvance; y++) {
+        usedDays = getTimeRangeDays(user.subdays.get(j));
+        for (int i = 0; i < usedDays.size(); i++) {
+          for (int y = 0; y < weekAdvance; y++) {
 
-              day.add(DayOfWeek.of(usedDays.get(i)));
+            day.add(DayOfWeek.of(usedDays.get(i)));
             dbDay.add(DayOfWeek.of(usedDays.get(i)));
             LocalDateTime start = getNextClosestDateTime(
                 dbDay, user.substart.get(j), mc.getStartDay(), user, y);
@@ -321,7 +358,17 @@ public class DatabaseManager {
     return blockRanges;
   }
 
-  public static ArrayList<Interval> merge(ArrayList<Interval> intervals) {
+  private static List<Integer> getTimeRangeDays(List<Boolean> tr) {
+    List<Integer> usedDays = new ArrayList<>();
+    for (int i = 0; i < tr.size(); i++) {
+      if (tr.get(i).equals(true)) {
+        usedDays.add(((i + 6) % 7) + 1);
+      }
+    }
+    return usedDays;
+  }
+
+  private static ArrayList<Interval> merge(ArrayList<Interval> intervals) {
 
     if (intervals.size() == 0 || intervals.size() == 1)
       return intervals;
@@ -349,14 +396,9 @@ public class DatabaseManager {
     return result;
   }
 
-  static class Interval {
+  private static class Interval {
     private Long start;
     private Long end;
-
-    Interval() {
-      start = 0L;
-      end = 0L;
-    }
 
     Interval(Long s, Long e) {
       start = s;

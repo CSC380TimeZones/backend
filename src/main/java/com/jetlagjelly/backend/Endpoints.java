@@ -2,7 +2,6 @@ package com.jetlagjelly.backend;
 
 import static com.jetlagjelly.backend.controllers.MeetingManager.intersectMany;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.concreteTime;
-import static com.jetlagjelly.backend.controllers.DatabaseManager.newcurrentUser;
 import com.jetlagjelly.backend.models.*;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
@@ -77,24 +76,14 @@ public class Endpoints {
     ArrayList<ArrayList<Long>> b = new ArrayList<>();
 
     for (String s : emailList) {
-      Document d = db.fetchUser(s, true);
+      // Get user object from database
+      User user = db.fetchUserAsUserObject(s, false);
 
       // Add user to not found list if email is not in database, and skip email
-      if (d == null) {
+      if (user == null) {
         notFound.add(s);
         continue;
       }
-      Document pt = (Document) d.get("preferred_timerange");
-      Document st = (Document) d.get("suboptimal_timerange");
-      User user = new User(
-          s, d.getString("access_token"), d.getString("refresh_token"),
-          d.getLong("expires_at"), (List<String>) d.get("scope"),
-          d.getString("token_type"), Double.valueOf(d.getString("timezone")),
-          (List<String>) d.get("calendar_id"), (List<Double>) pt.get("start"),
-          (List<Double>) pt.get("end"), (List<List<Boolean>>) pt.get("days"),
-          (List<Double>) st.get("start"),
-          (List<Double>) st.get("end"),
-          (List<List<Boolean>>) st.get("days"));
       a.add((ArrayList<Long>) concreteTime(user, mc, "preferred", j));
       b.add((ArrayList<Long>) concreteTime(user, mc, "suboptimal", j));
       a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
@@ -160,6 +149,11 @@ public class Endpoints {
     return new RedirectView(url);
   }
 
+  /**
+   * Makes an account with the email, adds it to the db
+   * tries to make email and access token a string to just pass into the
+   * db to a new user document once they are authenticated.
+   */
   @GetMapping("/oauth")
   public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException {
     GoogleTokenResponse tokenResponse = AuthorizationManager.getTokenFromCode(authorizationCode);
@@ -177,29 +171,15 @@ public class Endpoints {
 
     Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
 
-    List<String> scope = Arrays.asList("https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/calendar");
     String email = payload.getEmail();
-    Document newUser = new Document("email", email)
-        .append("access_token", tokenResponse.getAccessToken())
-        .append("refresh_token", tokenResponse.getRefreshToken())
-        .append("expires_at", tokenResponse.getExpiresInSeconds())
-        .append("scope", scope)
-        .append("token_type", tokenResponse.getTokenType());
-
     Document user = db.fetchUser(email, true);
-
-    if (user == null) {
+    if (user == null)
       db.newUser(email, tokenResponse);
-    } else {
-      db.collection.updateOne(user, new Document("$set", newUser));
-    }
+    else
+      db.updateUserToken(user, tokenResponse);
+
     return "Authorization Success! You may now close this window.";
 
-    // make an account with the email, add it to the db
-    // try to make email and access token a string to just pass into the mongo
-    // db make a new mongo db user once they are authenticated. create a new
-    // user in db with id email access token and stuff, default values
   }
 
   @PutMapping("/timezone")
@@ -227,15 +207,7 @@ public class Endpoints {
       @RequestParam(value = "start") double start,
       @RequestParam(value = "end") double end,
       @RequestParam(value = "days") List<Boolean> days) {
-    // update time range for user in db
-    String whichRange = type + "_timerange";
-
-    Document query = new Document("email", email);
-    Document update = new Document("$set",
-        new Document(whichRange + ".start" + "." + index, start)
-            .append(whichRange + ".end" + "." + index, end)
-            .append(whichRange + ".days" + "." + index, days));
-    db.collection.updateOne(query, update);
+    db.updateTimeRange(email, type, index, start, end, days);
     return ResponseEntity.ok("Time range updated!");
   }
 
@@ -243,45 +215,22 @@ public class Endpoints {
   public ResponseEntity<String> removeTimeRange(@RequestParam(value = "email") String email,
       @RequestParam(value = "type") String type,
       @RequestParam(value = "index") int index) {
-    // remove time range for user in db
-    String whichRange = type + "_timerange";
-
-    Document query = new Document("email", email);
-    Document updatestart = new Document("$unset", new Document(whichRange + ".start." + index, null));
-    Document updateend = new Document("$unset", new Document(whichRange + ".end." + index, null));
-    Document updatedays = new Document("$unset", new Document(whichRange + ".days." + index, null));
-    db.collection.updateOne(query, updatestart);
-    db.collection.updateOne(query, updateend);
-    db.collection.updateOne(query, updatedays);
-
-    Document removeNullStart = new Document("$pull", new Document(whichRange + ".start", null));
-    Document removeNullEnd = new Document("$pull", new Document(whichRange + ".end", null));
-    Document removeNullDays = new Document("$pull", new Document(whichRange + ".days", null));
-    db.collection.updateOne(query, removeNullStart);
-    db.collection.updateOne(query, removeNullEnd);
-    db.collection.updateOne(query, removeNullDays);
+    db.deleteTimeRange(email, type, index);
     return ResponseEntity.ok("Time range removed!");
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/currentUser")
+  @GetMapping("/currentUser")
   public static Document currentUser(@RequestParam(value = "email") String email) {
-    Document d = db.fetchUser(email, false);
-    if (d == null)
+    Document user = db.fetchUser(email, false);
+    if (user == null)
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
-    return d;
+    return user;
   }
 
   @PutMapping("/calendar")
   public static void calendar(@RequestParam(value = "email") String email,
       @RequestParam(value = "calendar_id") String calendar_id,
       @RequestParam(value = "used") Boolean used) {
-    Document query = new Document("email", email);
-    Document update = new Document();
-    if (used) {
-      update = new Document("$push", new Document("calendar_id", calendar_id));
-    } else {
-      update = new Document("$pull", new Document("calendar_id", calendar_id));
-    }
-    db.collection.updateOne(query, update);
+    db.toggleCalendar(email, calendar_id, used);
   }
 }

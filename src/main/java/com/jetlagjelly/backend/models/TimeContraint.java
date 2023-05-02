@@ -1,13 +1,7 @@
 package com.jetlagjelly.backend.models;
 
 import com.jetlagjelly.backend.controllers.DatabaseManager;
-import com.jetlagjelly.backend.controllers.MeetingManager;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import io.github.cdimascio.dotenv.DotenvException;
-import org.bson.Document;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -18,14 +12,9 @@ import java.util.List;
 import java.util.TimeZone;
 
 public class TimeContraint {
-    public static MongoCollection<Document> collection = new DatabaseManager().collection;
 
     public static void main(String[] args)
             throws GeneralSecurityException, IOException, DotenvException, ExceptionInInitializerError {
-
-        MongoClient client = MongoClients.create("mongodb://localhost:27017/");
-        MongoDatabase db = client.getDatabase("JetLagJelly");
-        MongoCollection collections = db.getCollection("users");
 
         String email = "bmclean2@oswego.edu";
         int mtngLength = 60;
@@ -100,14 +89,11 @@ public class TimeContraint {
             }
         }
 
-        MeetingManager mm = new MeetingManager();
         String ls = mc.getEmail();
         ArrayList<String> emailList = new ArrayList<>();
         String[] emailArray = ls.split(" ");
         Collections.addAll(emailList, emailArray);
         ArrayList<ArrayList<Long>> a = new ArrayList<>();
-        ArrayList<ArrayList<Long>> b = new ArrayList<>();
-        ArrayList<String> notFound = new ArrayList<>();
 
         for (int c = 0; c < j; c++) {
             a.add((ArrayList<Long>) DatabaseManager.concreteTime(user, mc, "preferred", c));
