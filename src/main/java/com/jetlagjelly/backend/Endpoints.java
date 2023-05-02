@@ -4,16 +4,6 @@ import static com.jetlagjelly.backend.controllers.MeetingManager.intersectMany;
 import static com.jetlagjelly.backend.controllers.DatabaseManager.concreteTime;
 import com.jetlagjelly.backend.models.*;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.gson.Gson;
 import com.jetlagjelly.backend.controllers.AuthorizationManager;
 import com.jetlagjelly.backend.controllers.DatabaseManager;
 import com.jetlagjelly.backend.controllers.MeetingManager;
@@ -149,37 +139,10 @@ public class Endpoints {
     return new RedirectView(url);
   }
 
-  /**
-   * Makes an account with the email, adds it to the db
-   * tries to make email and access token a string to just pass into the
-   * db to a new user document once they are authenticated.
-   */
   @GetMapping("/oauth")
   public String handleCallback(@RequestParam(value = "code") String authorizationCode) throws IOException {
-    GoogleTokenResponse tokenResponse = AuthorizationManager.getTokenFromCode(authorizationCode);
-
-    GoogleCredential credential = AuthorizationManager.getCredential();
-    credential.setAccessToken(tokenResponse.getAccessToken());
-
-    HttpTransport httpTransport = new NetHttpTransport();
-    HttpRequestFactory requestFactory = httpTransport.createRequestFactory(credential);
-    GenericUrl url = new GenericUrl(
-        "https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=" +
-            credential.getAccessToken());
-    HttpRequest request = requestFactory.buildGetRequest(url);
-    HttpResponse response = request.execute();
-
-    Payload payload = new Gson().fromJson(response.parseAsString(), Payload.class);
-
-    String email = payload.getEmail();
-    Document user = db.fetchUser(email, true);
-    if (user == null)
-      db.newUser(email, tokenResponse);
-    else
-      db.updateUserToken(user, tokenResponse);
-
+    AuthorizationManager.handleOauthCallback(db, authorizationCode);
     return "Authorization Success! You may now close this window.";
-
   }
 
   @PutMapping("/timezone")

@@ -6,7 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.bson.Document;
+
 import com.google.api.client.auth.oauth2.TokenResponseException;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
@@ -108,10 +111,35 @@ public class AuthorizationManager {
   }
 
   /**
+   * Makes an account with the email from the code, adds it to the db
+   * tries to make email and access token a string to just pass into the
+   * db to a new user document once they are authenticated.
+   * 
+   * @param db
+   * @param code
+   * @return
+   * @throws IOException
+   */
+  public static Document handleOauthCallback(DatabaseManager db, String code) throws IOException {
+    GoogleTokenResponse tokenResponse = getTokenFromCode(code);
+
+    GoogleAPIManager googleAPIManager = new GoogleAPIManager(db, tokenResponse);
+    Payload payload = googleAPIManager.getUserEmail();
+
+    String email = payload.getEmail();
+    Document user = db.fetchUser(email, true);
+    if (user == null)
+      user = db.newUser(email, tokenResponse);
+    else
+      db.updateUserToken(user, tokenResponse);
+    return user;
+  }
+
+  /**
    * Returns a Google Credential object with the client parameters, which used for
    * authorizing web requests
    */
-  public static GoogleCredential getCredential() {
+  protected static GoogleCredential getCredential() {
     JsonObject credentials = getCredentials();
 
     HttpTransport httpTransport = new NetHttpTransport();

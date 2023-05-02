@@ -90,9 +90,9 @@ public class DatabaseManager {
     Document update = new Document("email", user.get("email"))
         .append("access_token", tokenResponse.getAccessToken())
         .append("refresh_token", tokenResponse.getRefreshToken())
-        .append("expires_at", tokenResponse.getExpiresInSeconds())
+        .append("expires_at", System.currentTimeMillis() + tokenResponse.getExpiresInSeconds() * 1000)
         .append("scope", scope)
-        .append("token_type", tokenResponse.getTokenType()).append("timezone", "0");
+        .append("token_type", tokenResponse.getTokenType());
 
     collection.updateOne(user, new Document("$set", update));
   }
