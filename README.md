@@ -82,4 +82,4 @@ If you are not using an IDE that supports that, All tests will automatically be 
 
 Use `docker compose down` to stop all the containers, then use `docker compose up --build -d` to start your application again.
 
-Your deployment is live!
+**Your deployment should now be live!**
