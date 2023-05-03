@@ -179,6 +179,13 @@ public class Endpoints {
     return response;
   }
 
+  @GetMapping("/send")
+  public Document sendEmail(@RequestParam(value = "email") String email) {
+    db.sendEmail(email);
+    Document response = new Document("email_sent", true);
+    return response;
+  }
+
   @GetMapping("/login")
   public RedirectView login() {
 

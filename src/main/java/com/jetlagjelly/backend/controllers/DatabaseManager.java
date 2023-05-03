@@ -247,10 +247,10 @@ public class DatabaseManager {
     collection.updateOne(query, removeNullDays);
   }
 
-  public static void sendEmail(String recipient) {
+  public void sendEmail(String recipient) {
 
     final String username = "jetlagjelly@gmail.com";
-    final String password = System.getenv("ACCOUNT_PASSWORD");
+    final String password = dotenv.get("ACCOUNT_PASSWORD");
 
     Properties prop = new Properties();
     prop.put("mail.smtp.host", "smtp.gmail.com");
