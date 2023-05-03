@@ -89,11 +89,12 @@ public class Endpoints {
 
       List<Long> preferredConcreteTimes = concreteTime(user, mc, "preferred", j);
       List<Long> suboptimalConcreteTimes = concreteTime(user, mc, "suboptimal", j);
+      ArrayList<Long> events = CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc);
       a.add((ArrayList<Long>) preferredConcreteTimes);
       b.add((ArrayList<Long>) suboptimalConcreteTimes);
       b.add((ArrayList<Long>) preferredConcreteTimes);
-      a.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
-      b.add(CalendarQuickstart.events(user.access_token, (ArrayList<String>) user.calendar_id, mc));
+      a.add(events);
+      b.add(events);
     }
 
     if (notFound.size() > 0) {
