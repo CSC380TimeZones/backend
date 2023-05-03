@@ -31,7 +31,7 @@ public class Endpoints {
   public static Dotenv dotenv = Dotenv.load();
 
   @RequestMapping(method = RequestMethod.GET, value = "/email")
-  public static MeetingTimes getMeetingConstraints(
+  public static Document getMeetingConstraints(
       @RequestParam(value = "email", defaultValue = "No email found!") String email,
       @RequestParam(value = "mtngLength", defaultValue = "60") int mtngLength,
       @RequestParam(value = "startDay", defaultValue = "100000000000") Long startDay,
@@ -98,8 +98,11 @@ public class Endpoints {
     }
 
     if (notFound.size() > 0) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-          "profile not found for:  " + notFound);
+      Document response = new Document()
+          .append("error", "unrecognized_emails")
+          .append("emails", notFound);
+
+      return response;
     }
 
     ArrayList<Long> p = intersectMany(a);
@@ -166,7 +169,14 @@ public class Endpoints {
     System.out.println("substartTimes:  " + mt.subStartTimes);
     System.out.println("subendTimes:  " + mt.subEndTimes);
 
-    return mt;
+    // Generate response object
+    Document response = new Document()
+        .append("startTimes", mt.startTimes)
+        .append("endTimes", mt.endTimes)
+        .append("subStartTimes", mt.subStartTimes)
+        .append("subEndTimes", mt.subEndTimes);
+
+    return response;
   }
 
   @GetMapping("/login")
