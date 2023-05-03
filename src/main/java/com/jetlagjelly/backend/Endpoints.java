@@ -153,7 +153,7 @@ public class Endpoints {
     for (int i = 0; i < mt.subStartTimes.size(); i++) {
       long difference = mt.subEndTimes.get(i) - mt.subStartTimes.get(i);
 
-      if (difference > 1000 * 60 * mc.getMtngLength()) {
+      if (difference < 1000 * 60 * mc.getMtngLength()) {
         mt.subStartTimes.remove(i);
         mt.subEndTimes.remove(i);
       }
